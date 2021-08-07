@@ -24,37 +24,45 @@ public class Profile {
             return;
         }
         args = Arrays.stream(args).skip(2).toArray(String[]::new);
-        if (cmd.equalsIgnoreCase("delete")) delete(args);
-        else if (cmd.equalsIgnoreCase("add")) add(args);
+        if (cmd.equalsIgnoreCase("add")) add(args);
         else if (cmd.equalsIgnoreCase("remove")) remove(args);
         else if (cmd.equalsIgnoreCase("export")) export(args);
+        else if (cmd.equalsIgnoreCase("edit")) edit(args[0]);
+        else if (cmd.equalsIgnoreCase("delete")) delete(args);
         else Utils.invalid();
     }
 
     private static void create() {
         Scanner scanner = new Scanner(System.in);
         System.out.println(Ansi.ansi().fg(Ansi.Color.CYAN).a("Creating modpack profile... You will need to answer a few questions.").reset());
-        System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Please enter the name of the profile.").reset());
-        String name = scanner.nextLine();
-        System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Please enter the Minecraft version of the profile.").reset());
+        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Name: ").reset());
+        String name = null;
+        while (name == null) {
+            name = scanner.nextLine();
+            if (name.isEmpty()) {
+                System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Name cannot be empty. Name: ").reset());
+                name = null;
+            }
+        }
+        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Minecraft version: ").reset());
         String mcVer = null;
         while (mcVer == null) {
             mcVer = scanner.nextLine();
             if (!Utils.isMCVersionValid(mcVer)) {
                 mcVer = null;
-                System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("The version is invalid. Please enter the Minecraft version of the profile again.").reset());
+                System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("The version is invalid. Minecraft version: ").reset());
             }
         }
-        System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Please enter the mod launcher of the profile. [forge/fabric]").reset());
+        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod launcher [forge/fabric]: ").reset());
         String launcher = null;
         while (launcher == null) {
             launcher = scanner.nextLine().toLowerCase();
             if (!launcher.equalsIgnoreCase("forge") && !launcher.equalsIgnoreCase("fabric")) {
                 launcher = null;
-                System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("The launcher is invalid. Please enter the mod launcher of the profile again.").reset());
+                System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("The launcher is invalid. Mod launcher [forge/fabric]: ").reset().a("\r"));
             }
         }
-        System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Please enter the version of the mod launcher.").reset());
+        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod launcher version: ").reset());
         String modVer = scanner.nextLine();
         File profile = new File(Config.profileDir.getPath() + File.separator + name);
         if (profile.exists()) {
@@ -75,6 +83,73 @@ public class Profile {
             pw.close();
             System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Created profile " + name));
         } catch (Exception e) {
+            System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to create profile " + profile));
+            e.printStackTrace();
+        }
+    }
+
+    private static void edit(String profile) {
+        File config = new File(Config.profileDir.getPath() + File.separator + profile + File.separator + "profile.json");
+        if (!config.exists()) {
+            System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Cannot find config of profile " + profile));
+            return;
+        }
+        JSONObject json;
+        try {
+            json = (JSONObject) parser.parse(new FileReader(config));
+        } catch (IOException | ParseException e) {
+            System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Cannot read config of profile " + profile));
+            e.printStackTrace();
+            return;
+        }
+        String name = (String) json.getOrDefault("name", "");
+        String mcVer = (String) json.getOrDefault("mcVer", "");
+        String launcher = (String) json.getOrDefault("launcher", "");
+        String modVer = (String) json.getOrDefault("modVer", "");
+        String nName = null, nMcVer = null, nModVer = null, nLauncher = null;
+        Scanner scanner = new Scanner(System.in);
+        System.out.println(Ansi.ansi().fg(Ansi.Color.CYAN).a("Editing profile " + profile));
+        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Name ("+name+"): ").reset());
+        while (nName == null) {
+            String received = scanner.nextLine();
+            if (received.isEmpty() && name.isEmpty()) {
+                System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Name cannot be empty. Name ("+name+"): ").reset());
+            } else nName = received.isEmpty() ? name : received;
+        }
+        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Minecraft version ("+mcVer+"): ").reset());
+        while (nMcVer == null) {
+            String received = scanner.nextLine();
+            if (((received.isEmpty() || !Utils.isMCVersionValid(received)) && mcVer.isEmpty())) {
+                System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("The version is invalid. Minecraft version ("+mcVer+"): ").reset());
+            } else nMcVer = received.isEmpty() ? mcVer : received;
+        }
+        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod launcher [forge/fabric] ("+launcher+"): ").reset());
+        while (nLauncher == null) {
+            String received = scanner.nextLine().toLowerCase();
+            if (((received.isEmpty() || (!received.equals("forge") && !received.equals("fabric"))) && launcher.isEmpty())) {
+                System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("The launcher is invalid. Mod launcher [forge/fabric] ("+launcher+"): ").reset());
+            } else nLauncher = received.isEmpty() ? launcher : received;
+        }
+        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod launcher version ("+modVer+"): ").reset());
+        while (nModVer == null) {
+            String received = scanner.nextLine();
+            if (received.isEmpty() && modVer.isEmpty()) {
+                System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("The launcher version is invalid. Mod launcher version ("+modVer+"): ").reset());
+            } else nModVer = received.isEmpty() ? modVer : received;
+        }
+        json.put("name", nName);
+        json.put("mcVer", nMcVer);
+        json.put("modVer", nModVer);
+        json.put("launcher", nLauncher);
+        try {
+            PrintWriter pw = new PrintWriter(config.getPath());
+            pw.write(json.toJSONString());
+
+            pw.flush();
+            pw.close();
+            System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Edited profile " + profile));
+        } catch (Exception e) {
+            System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to edit profile " + profile));
             e.printStackTrace();
         }
     }

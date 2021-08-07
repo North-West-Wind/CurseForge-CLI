@@ -31,7 +31,7 @@ public class Config {
 
     public static void printHelp(String prefix) {
         System.out.println(prefix + "config: Configure the CLI program.");
-        System.out.println(prefix + "\tdirectory: Set the directory for modpack installation.");
+        System.out.println(prefix + "\tdirectory: Set the working directory of the program.");
         System.out.println(prefix + "\t\targ <path>: Path to the directory");
     }
 
