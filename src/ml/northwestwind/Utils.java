@@ -1,5 +1,6 @@
 package ml.northwestwind;
 
+import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 import org.json.simple.parser.JSONParser;
 
@@ -101,6 +102,10 @@ public class Utils {
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
                 File newFile = newFile(destDir, zipEntry);
+                if (newFile.exists()) {
+                    if (newFile.isDirectory()) FileUtils.cleanDirectory(newFile);
+                    else newFile.delete();
+                }
                 if (zipEntry.isDirectory()) {
                     if (!newFile.isDirectory() && !newFile.mkdirs())
                         throw new IOException("Failed to create directory " + newFile);

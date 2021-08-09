@@ -219,7 +219,7 @@ public class Profile {
                 JSONObject json = (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id);
                 if (json == null || ((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6) throw new Exception("The ID "+id+" does not represent a mod.");
                 JSONArray files = (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files");
-                files.sort((a, b) -> (int) (((long) ((JSONObject) a).get("id")) - ((long) ((JSONObject) b).get("id"))));
+                files.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
                 List f = (List) files.stream().filter(o -> {
                     JSONArray versions = (JSONArray) ((JSONObject) o).get("gameVersion");
                     return versions.get(0).equals(config.get("mcVer")) && ((String) versions.get(1)).equalsIgnoreCase((String) config.get("launcher"));
