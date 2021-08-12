@@ -19,6 +19,7 @@ Written in Java. Designed for all platform and portable use.
   - `delete <name>` Delete a profile. The name parameter is the name of the profile.
   - `add <profile> <ID>` Add a mod to the profile. ID is the ID of the mod on CurseForge.
   - `remove <profile> <ID>` Remove a mod from the profile. Works similarly to `add`.
+  - `update <profile> [ID]` Update mods of a profile. Omit ID to check for updates.
   - `export` Export the profile as an uploadable modpack format.
 - `mod` Commands for mods.
   - `search <keywords>` Search for mods with keywords. Will also export results to file for easier adding to profile.
