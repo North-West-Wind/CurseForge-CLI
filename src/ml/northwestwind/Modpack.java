@@ -72,7 +72,7 @@ public class Modpack {
             File manifest = new File(folder + File.separator + "manifest.json");
             JSONObject json = (JSONObject) parser.parse(new FileReader(manifest));
             JSONArray array = (JSONArray) json.get("files");
-            int i = 0, suc = 0, fai = 0;
+            int i = 0, suc = 0, fai = 0, lastlength = 0;
             for (Object o : array) {
                 String name = "";
                 try {
@@ -81,7 +81,7 @@ public class Modpack {
                     long file = (long) obj.get("fileID");
                     JSONArray files = (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + project + "/files");
                     Optional f = files.stream().filter(o1 -> ((JSONObject) o1).get("id").equals(file)).findFirst();
-                    if (!f.isPresent()) throw new Exception("Cannot find required file");
+                    if (!f.isPresent()) throw new Exception("Cannot find required file of project " + project);
                     JSONObject j = (JSONObject) f.get();
                     name = (String) j.get("displayName");
                     String downloaded = Utils.downloadFile((String) j.get("downloadUrl"), folder + File.separator + "mods", ((String) j.get("fileName")).replace(".jar", "_" + project + "_" + file + ".jar"));
@@ -91,8 +91,12 @@ public class Modpack {
                     fai++;
                     e.printStackTrace();
                 } finally {
-                    System.out.print(Ansi.ansi().fg(Ansi.Color.GREEN).a(String.format("[%d/%d] [S: %d | F: %d] Downloaded %s", ++i, array.size(), suc, fai, name)).reset()+"\r");
+                    StringBuilder formatted = new StringBuilder(String.format("[%d/%d] [S: %d | F: %d] Downloaded %s", ++i, array.size(), suc, fai, name));
+                    int ll = formatted.length() - lastlength;
+                    if (ll > 0) for (int ii = 0; ii < ll; ii++) formatted.append(" ");
+                    System.out.print(Ansi.ansi().fg(Ansi.Color.GREEN).a(formatted.toString()).reset()+"\r");
                     System.out.flush();
+                    lastlength = formatted.length();
                 }
             }
             System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(String.format("Iterated through %d projects. %d success, %d failed", i, suc, fai)));

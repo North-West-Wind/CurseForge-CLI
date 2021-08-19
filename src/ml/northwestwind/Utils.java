@@ -1,12 +1,16 @@
 package ml.northwestwind;
 
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +47,7 @@ public class Utils {
     }
 
     public static String downloadFile(String fileURL, String saveDir, String name) throws IOException {
-        URL url = new URL(fileURL);
+        URL url = new URL(fileURL.replace(" ", "%20"));
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
         int responseCode = httpConn.getResponseCode();
         String saveFilePath = null;
@@ -83,7 +87,7 @@ public class Utils {
 
             outputStream.close();
             inputStream.close();
-        } else System.err.println(Ansi.ansi().fg(Ansi.Color.RED.fgBright()).a("No file to download. Server replied HTTP code: " + responseCode));
+        } else System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("No file to download. Server replied HTTP code: " + responseCode));
         httpConn.disconnect();
         return saveFilePath;
     }
@@ -214,5 +218,22 @@ public class Utils {
         public V setValue(V value) {
             return null;
         }
+    }
+
+    public static String getOppositeLauncher(String launcher) {
+        if (launcher.equalsIgnoreCase("forge")) return "fabric";
+        if (launcher.equalsIgnoreCase("fabric")) return "forge";
+        return null;
+    }
+
+    public static boolean checkVersion(JSONArray versions, JSONObject config) {
+        String requiredVer = (String) config.get("mcVer");
+        String oppoLauncher = getOppositeLauncher((String) config.get("launcher"));
+        boolean launcherMatch = false, versionMatch = false;
+        if (oppoLauncher == null || !versions.contains(oppoLauncher)) launcherMatch = true;
+        if (!versions.contains(requiredVer)) {
+            if (versions.stream().filter(ver -> isMCVersionValid((String) ver)).count() <= 0) versionMatch = true;
+        } else versionMatch = true;
+        return versionMatch && launcherMatch;
     }
 }

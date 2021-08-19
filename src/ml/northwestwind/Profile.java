@@ -220,10 +220,7 @@ public class Profile {
                 JSONObject json = (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id);
                 if (json == null || ((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6) throw new Exception("The ID "+id+" does not represent a mod.");
                 JSONArray files = (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files");
-                List f = (List) files.stream().filter(o -> {
-                    JSONArray versions = (JSONArray) ((JSONObject) o).get("gameVersion");
-                    return versions.get(0).equals(config.get("mcVer")) && ((String) versions.get(1)).equalsIgnoreCase((String) config.get("launcher"));
-                }).collect(Collectors.toList());
+                List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersion"), config)).collect(Collectors.toList());
                 f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
                 if (f.size() < 1) throw new Exception("No available file of " + id + " found for this profile.");
                 JSONObject bestFile = (JSONObject) f.get(0);
@@ -440,18 +437,16 @@ public class Profile {
                     JSONObject json = (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + entry.getKey());
                     if (json == null || ((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6) throw new Exception("The ID "+entry.getKey()+" does not represent a mod.");
                     JSONArray files = (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + entry.getKey() + "/files");
-                    List f = (List) files.stream().filter(o -> {
-                        JSONArray versions = (JSONArray) ((JSONObject) o).get("gameVersion");
-                        return versions.get(0).equals(config.get("mcVer")) && ((String) versions.get(1)).equalsIgnoreCase((String) config.get("launcher"));
-                    }).collect(Collectors.toList());
+                    List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersion"), config)).collect(Collectors.toList());
                     f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
-                    if (f.size() < 1) throw new Exception("No available file of " + entry.getKey() + " found for this profile.");
+                    if (f.size() < 1) continue;
                     JSONObject fjson = (JSONObject) f.get(0);
                     if (((long) fjson.get("id")) > entry.getValue().getKey()) {
                         System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(entry.getValue().getValue()).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(entry.getKey()));
                         updatables.put(entry.getKey(), entry.getValue().getValue());
                     }
                 } catch (Exception e) {
+                    System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Having trouble with mod " + entry.getKey()));
                     e.printStackTrace();
                 }
             }
@@ -463,7 +458,7 @@ public class Profile {
                 String cmd = "curseforge profile add <profile> " + mods.keySet().stream().map(String::valueOf).collect(Collectors.joining(" "));
                 pw.println(cmd);
                 pw.close();
-                System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Exported mods with update available to search.txt"));
+                System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Exported mods with update available to mod_updates.txt"));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -476,10 +471,7 @@ public class Profile {
                 JSONObject json = (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id);
                 if (json == null || ((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6) throw new Exception("The ID "+id+" does not represent a mod.");
                 JSONArray files = (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files");
-                List f = (List) files.stream().filter(o -> {
-                    JSONArray versions = (JSONArray) ((JSONObject) o).get("gameVersion");
-                    return versions.get(0).equals(config.get("mcVer")) && ((String) versions.get(1)).equalsIgnoreCase((String) config.get("launcher"));
-                }).collect(Collectors.toList());
+                List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersion"), config)).collect(Collectors.toList());
                 f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
                 if (f.size() < 1) throw new Exception("No available file of " + id + " found for this profile.");
                 JSONObject bestFile = (JSONObject) f.get(0);

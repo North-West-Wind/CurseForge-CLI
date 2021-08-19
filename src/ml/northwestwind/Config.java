@@ -98,7 +98,7 @@ public class Config {
             String[] splitted1 = Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).toArray(String[]::new);
             String id = Utils.getLast(Arrays.asList(splitted1));
             if (!Utils.isInteger(id)) continue;
-            String name = Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).collect(Collectors.joining());
+            String name = String.join("_", Arrays.copyOf(splitted, splitted.length - 1));
             map.put(Integer.parseInt(id), new Map.Entry<Integer, String>() {
                 @Override
                 public Integer getKey() {

@@ -9,7 +9,7 @@ import static org.fusesource.jansi.Ansi.Color.*;
 
 public class Main {
     public static void main(String[] args) {
-        if (!AnsiConsole.isInstalled()) AnsiConsole.systemInstall();
+        AnsiConsole.systemInstall();
         Config.load();
         int index = Arrays.asList(args).indexOf("--args");
         if (index < 0) {
@@ -34,7 +34,7 @@ public class Main {
                 "   \\ \\_______\\ \\__\\        \\ \\_______\\ \\_______\\ \\__\\\n" +
                 "    \\|_______|\\|__|         \\|_______|\\|_______|\\|__|"
         ).reset());
-        System.out.println(ansi().fg(GREEN.fgBright()).a("Made by NorthWestWind").reset());
+        System.out.println(ansi().fg(GREEN).a("Made by NorthWestWind").reset());
         System.out.println();
         System.out.println("\"curseforge\", or \"./curseforge\" if you are running terminal in this directory.");
         System.out.println("\thelp: Display this message.");
