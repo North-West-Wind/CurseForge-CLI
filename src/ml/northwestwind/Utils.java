@@ -221,8 +221,8 @@ public class Utils {
     }
 
     public static String getOppositeLauncher(String launcher) {
-        if (launcher.equalsIgnoreCase("forge")) return "fabric";
-        if (launcher.equalsIgnoreCase("fabric")) return "forge";
+        if (launcher.equalsIgnoreCase("forge")) return "Fabric";
+        if (launcher.equalsIgnoreCase("fabric")) return "Forge";
         return null;
     }
 
