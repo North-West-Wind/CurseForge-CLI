@@ -403,6 +403,7 @@ public class Profile {
         try {
             manifest.delete();
             FileUtils.deleteDirectory(overridesFolder);
+            FileUtils.deleteDirectory(modsCopy);
         } catch (Exception e) {
             System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Failed to clean up, but we can keep running."));
             e.printStackTrace();
@@ -496,8 +497,6 @@ public class Profile {
         System.out.println(prefix + "\t\targ <name>: Name of the profile.");
         System.out.println(prefix + "\texport: Export a profile into zip.");
         System.out.println(prefix + "\t\targ <name>: Name of the profile.");
-        System.out.println(prefix + "\t\targ <version>: Version of the exported profile.");
-        System.out.println(prefix + "\t\targ <launcherVer>: The version of the mod launcher.");
         System.out.println(prefix + "\t\targ [folders|files]: Folders or files to put in overrides.");
         System.out.println(prefix + "\tadd: Add a mod to the profile.");
         System.out.println(prefix + "\t\targ <profile>: Name of the profile to target.");
