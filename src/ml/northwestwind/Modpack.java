@@ -49,7 +49,7 @@ public class Modpack {
                 if (!success) throw new Exception("Failed to extract modpack content of "+name);
                 File manifest = new File(packFolder + File.separator + "manifest.json");
                 if (!manifest.exists()) throw new Exception("Cannot find modpack manifest of "+name);
-                copyFromOverride(packFolder.getPath());
+                copyFromOverride(packFolder.getPath(), (String) ((JSONObject) parser.parse(new FileReader(manifest))).get("overrides"));
                 downloadMods(packFolder.getPath());
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Finished download of " + name).reset());
             } catch (Exception e) {
@@ -58,8 +58,8 @@ public class Modpack {
         }
     }
 
-    private static void copyFromOverride(String folder) throws IOException {
-        File overrides = new File(folder + File.separator + "overrides");
+    private static void copyFromOverride(String folder, String overridesName) throws IOException {
+        File overrides = new File(folder + File.separator + overridesName);
         FileUtils.copyDirectory(overrides, new File(folder));
         FileUtils.deleteDirectory(overrides);
     }
@@ -211,7 +211,7 @@ public class Modpack {
                 File manifest = new File(packFolder + File.separator + "manifest.json");
                 if (!manifest.exists()) throw new Exception("Cannot find modpack manifest of "+name);
                 FileUtils.cleanDirectory(new File(packFolder.getPath() + File.separator + "mods"));
-                copyFromOverride(packFolder.getPath());
+                copyFromOverride(packFolder.getPath(), (String) ((JSONObject) parser.parse(new FileReader(manifest))).get("overrides"));
                 downloadMods(packFolder.getPath());
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Finished download of " + name).reset());
             } catch (Exception e) {

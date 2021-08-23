@@ -347,6 +347,7 @@ public class Profile {
         loaders.add(loader);
         minejo.put("modLoaders", loaders);
         mjo.put("minecraft", minejo);
+        mjo.put("overrides", "overrides");
         File manifest = new File(Config.profileDir.getPath() + File.separator + profile + File.separator + "manifest.json");
         try {
             PrintWriter pw = new PrintWriter(manifest.getPath());
