@@ -457,7 +457,7 @@ public class Profile {
                 for (Map.Entry<Integer, String> entry : updatables.entrySet()) pw.println(entry.getValue() + " = " + entry.getKey());
                 pw.println();
                 pw.println("You can update these mods of a profile with the following command: ");
-                String cmd = "curseforge profile add <profile> " + mods.keySet().stream().map(String::valueOf).collect(Collectors.joining(" "));
+                String cmd = "curseforge profile add <profile> " + updatables.keySet().stream().map(String::valueOf).collect(Collectors.joining(" "));
                 pw.println(cmd);
                 pw.close();
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Exported mods with update available to mod_updates.txt"));
