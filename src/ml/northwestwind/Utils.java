@@ -165,7 +165,7 @@ public class Utils {
     }
 
     public static boolean isMCVersionValid(String ver) {
-        String[] splitted = ver.split("\\.");
+        String[] splitted = ver.replace("-Snapshot", "").split("\\.");
         if (splitted.length > 3) return false;
         for (int ii = 0; ii < splitted.length; ii++) {
             String split = splitted[ii];
