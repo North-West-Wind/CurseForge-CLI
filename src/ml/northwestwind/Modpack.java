@@ -60,6 +60,7 @@ public class Modpack {
 
     private static void copyFromOverride(String folder, String overridesName) throws IOException {
         File overrides = new File(folder + File.separator + overridesName);
+        if (!overrides.exists()) return;
         FileUtils.copyDirectory(overrides, new File(folder));
         FileUtils.deleteDirectory(overrides);
     }

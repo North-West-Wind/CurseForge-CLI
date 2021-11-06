@@ -9,6 +9,7 @@ import static org.fusesource.jansi.Ansi.Color.*;
 
 public class Main {
     public static void main(String[] args) {
+        System.out.println("CurseForge CLI v" + Constants.VERSION);
         AnsiConsole.systemInstall();
         Config.load();
         int index = Arrays.asList(args).indexOf("--args");
@@ -22,6 +23,7 @@ public class Main {
         else if (args[0].equalsIgnoreCase("modpack")) Modpack.run(args);
         else if (args[0].equalsIgnoreCase("profile")) Profile.run(args);
         else if (args[0].equalsIgnoreCase("config")) Config.run(args);
+        AnsiConsole.systemUninstall();
     }
 
     private static void printHelp() {
