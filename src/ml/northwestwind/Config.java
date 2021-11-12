@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Config {
-    public static File directory, modpackDir, profileDir, exportDir;
+    public static File directory, modpackDir, profileDir, exportDir, tempDir;
 
     public static void run(String[] args) {
         if (args.length < 3) {
@@ -58,6 +58,7 @@ public class Config {
             if (!profileDir.exists() || !profileDir.isDirectory()) profileDir.mkdir();
             exportDir = new File(directory.getPath() + File.separator + "exported");
             if (!exportDir.exists() || !exportDir.isDirectory()) exportDir.mkdir();
+            tempDir = new File(directory.getPath() + File.separator + "tmp");
         } catch(Exception e) {
             e.printStackTrace();
         }

@@ -4,8 +4,9 @@ import org.fusesource.jansi.AnsiConsole;
 
 import java.util.Arrays;
 
-import static org.fusesource.jansi.Ansi.*;
-import static org.fusesource.jansi.Ansi.Color.*;
+import static org.fusesource.jansi.Ansi.Color.GREEN;
+import static org.fusesource.jansi.Ansi.Color.YELLOW;
+import static org.fusesource.jansi.Ansi.ansi;
 
 public class Main {
     public static void main(String[] args) {

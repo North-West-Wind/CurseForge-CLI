@@ -30,6 +30,7 @@ public class Profile {
         else if (cmd.equalsIgnoreCase("export")) export(args);
         else if (cmd.equalsIgnoreCase("edit")) edit(args[0]);
         else if (cmd.equalsIgnoreCase("delete")) delete(args);
+        else if (cmd.equals("import")) importProf(args);
         else Utils.invalid();
     }
 
@@ -491,6 +492,53 @@ public class Profile {
         }
     }
 
+    private static void importProf(String[] paths) {
+        if (!Config.tempDir.exists() || !Config.tempDir.isDirectory()) Config.tempDir.mkdir();
+        else {
+            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Another instance is importing a modpack. Please wait until it is finished."));
+            return;
+        }
+        for (String path : paths) {
+            File zipped = new File(path);
+            try {
+                if (!zipped.exists()) throw new Exception("The file " + path + " does not exist");
+                if (zipped.isFile()) {
+                    FileUtils.copyFileToDirectory(zipped, Config.tempDir);
+                    if (!Utils.unzip(Config.tempDir.getPath() + File.separator + zipped.getName())) throw new Exception("Failed to extract modpack content of "+path);
+                } else FileUtils.copyDirectoryToDirectory(zipped, Config.tempDir);
+                File manifest = new File(Config.tempDir.getPath() + File.separator + "manifest.json");
+                if (!manifest.exists() || !manifest.isFile()) throw new Exception("Modpack is missing manifest. Cannot convert to profile.");
+                Modpack.copyFromOverride(Config.tempDir.getPath(), (String) ((JSONObject) parser.parse(new FileReader(manifest))).get("overrides"));
+                Modpack.downloadMods(Config.tempDir.getPath());
+                JSONObject json = (JSONObject) parser.parse(new FileReader(manifest));
+                String slug = ((String) json.get("name")).toLowerCase().replaceAll("[^a-z0-9]", "-");
+                FileUtils.moveDirectoryToDirectory(Config.tempDir, Config.profileDir, true);
+                File packFolder = new File(Config.profileDir.getPath() + File.separator + "tmp");
+                File newFolder = new File(Config.profileDir.getPath() + File.separator + slug);
+                if (!packFolder.renameTo(newFolder)) {
+                    System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to rename modpack, but we are continuing anyway."));
+                    newFolder = packFolder;
+                }
+                JSONObject profile = new JSONObject();
+                JSONObject minecraft = (JSONObject) json.get("minecraft");
+                String[] launcher = ((String) ((JSONObject) ((JSONArray) minecraft.get("modLoaders")).get(0)).get("id")).split("-", 2);
+                profile.put("name", json.get("name"));
+                profile.put("mcVer", minecraft.get("version"));
+                profile.put("launcher", launcher[0]);
+                profile.put("modVer", launcher[1]);
+                PrintWriter pw = new PrintWriter(newFolder.getPath() + File.separator + "profile.json");
+                pw.write(profile.toJSONString());
+
+                pw.flush();
+                pw.close();
+                manifest.delete();
+                System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Converted modpack " + slug + " into profile."));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public static void printHelp(String prefix) {
         System.out.println(prefix + "profile: Commands for custom profiles.");
         System.out.println(prefix + "\tcreate: Create a profile.");
@@ -508,5 +556,7 @@ public class Profile {
         System.out.println(prefix + "\tupdate: Update mods in the profile.");
         System.out.println(prefix + "\t\targ <profile>: Name of the profile to target.");
         System.out.println(prefix + "\t\targ [ID]: The ID of mods. Omit to check for updates.");
+        System.out.println(prefix + "\timport: Import a downloaded modpack.");
+        System.out.println(prefix + "\t\targ <path>: Path to the zip or directory.");
     }
 }

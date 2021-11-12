@@ -6,7 +6,10 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -58,14 +61,14 @@ public class Modpack {
         }
     }
 
-    private static void copyFromOverride(String folder, String overridesName) throws IOException {
+    public static void copyFromOverride(String folder, String overridesName) throws IOException {
         File overrides = new File(folder + File.separator + overridesName);
         if (!overrides.exists()) return;
         FileUtils.copyDirectory(overrides, new File(folder));
         FileUtils.deleteDirectory(overrides);
     }
 
-    private static void downloadMods(String folder) {
+    public static void downloadMods(String folder) {
         System.out.println(Ansi.ansi().fg(Ansi.Color.CYAN).a("Starting mod download").reset());
         try {
             File modsFolder = new File(folder + File.separator + "mods");
@@ -95,7 +98,7 @@ public class Modpack {
                     StringBuilder formatted = new StringBuilder(String.format("[%d/%d] [S: %d | F: %d] Downloaded %s", ++i, array.size(), suc, fai, name));
                     int ll = formatted.length() - lastlength;
                     if (ll > 0) for (int ii = 0; ii < ll; ii++) formatted.append(" ");
-                    System.out.print(Ansi.ansi().fg(Ansi.Color.GREEN).a(formatted.toString()).reset()+"\r");
+                    System.out.print(Ansi.ansi().fg(Ansi.Color.GREEN).a(formatted.toString()).reset().a("\r"));
                     System.out.flush();
                     lastlength = formatted.length();
                 }

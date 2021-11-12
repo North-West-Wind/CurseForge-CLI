@@ -1,6 +1,5 @@
 package ml.northwestwind;
 
-import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.fusesource.jansi.Ansi;
 import org.json.simple.JSONArray;
@@ -10,7 +9,6 @@ import org.json.simple.parser.JSONParser;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
