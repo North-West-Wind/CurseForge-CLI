@@ -23,6 +23,7 @@ public class Main {
         else if (args[0].equalsIgnoreCase("modpack")) Modpack.run(args);
         else if (args[0].equalsIgnoreCase("profile")) Profile.run(args);
         else if (args[0].equalsIgnoreCase("config")) Config.run(args);
+        System.out.println(ansi().reset().a("Job done!"));
         AnsiConsole.systemUninstall();
     }
 
