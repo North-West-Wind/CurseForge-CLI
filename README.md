@@ -4,7 +4,10 @@ Written in Java. Designed for all platform and portable use.
 1. Download the "curseforge.zip" at the [release page](https://github.com/North-West-Wind/CurseForge-CLI/releases/latest).
 2. Extract it to your desire location.
 3. Open a terminal in the extracted folder.
-4. If you're using Linux, make the "curseforge" file executable.
+4. If you're using Linux, make the "curseforge" file executable. There are 2 approaches:
+    - GUI: Open your file manager, right-click the file and get into "Properties", search and check "Executable" (or similar options).
+    - CLI: Run `chmod +x <path>`, where "path" is the path to the "curseforge" bash script.
+5. Run `./curseforge` in the terminal you opened to start it.
 
 ### Commands
 - `help` Display commands of the program.
