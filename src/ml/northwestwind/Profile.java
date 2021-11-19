@@ -66,7 +66,7 @@ public class Profile {
         }
         System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod launcher version: ").reset());
         String modVer = scanner.nextLine();
-        File profile = new File(Config.profileDir.getPath() + File.separator + name);
+        File profile = new File(Config.profileDir.getPath() + File.separator + name.toLowerCase().replaceAll("[^\\w]+", "-"));
         if (profile.exists()) {
             System.out.println(name + " already exists.");
             return;
