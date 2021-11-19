@@ -25,6 +25,7 @@ Written in Java. Designed for all platform and portable use.
   - `remove <profile> <ID>` Remove a mod from the profile. Works similarly to `add`.
   - `update <profile> [ID]` Update mods of a profile. Omit ID to check for updates.
   - `export` Export the profile as an uploadable modpack format.
+  - `import <path>` Import a downloaded modpack.
 - `mod` Commands for mods.
   - `search <keywords>` Search for mods with keywords. Will also export results to file for easier adding to profile.
 
