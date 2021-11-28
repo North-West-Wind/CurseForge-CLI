@@ -493,12 +493,18 @@ public class Profile {
     }
 
     private static void importProf(String[] paths) {
-        if (!Config.tempDir.exists() || !Config.tempDir.isDirectory()) Config.tempDir.mkdir();
-        else {
-            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Another instance is importing a modpack. Please wait until it is finished."));
-            return;
-        }
+        importProf(paths, false, false);
+    }
+
+    private static boolean importProf(String[] paths, boolean silent, boolean toCD) {
+        if (toCD && paths.length > 1) return false;
+        boolean imported = false;
         for (String path : paths) {
+            if (!Config.tempDir.exists() || !Config.tempDir.isDirectory()) Config.tempDir.mkdir();
+            else {
+                System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Another instance is importing a modpack. Please wait until it is finished."));
+                return imported;
+            }
             File zipped = new File(path);
             try {
                 if (!zipped.exists()) throw new Exception("The file " + path + " does not exist");
@@ -512,31 +518,55 @@ public class Profile {
                 Modpack.downloadMods(Config.tempDir.getPath());
                 JSONObject json = (JSONObject) parser.parse(new FileReader(manifest));
                 String slug = ((String) json.get("name")).toLowerCase().replaceAll("[^a-z0-9]", "-");
-                FileUtils.moveDirectoryToDirectory(Config.tempDir, Config.profileDir, true);
-                File packFolder = new File(Config.profileDir.getPath() + File.separator + "tmp");
-                File newFolder = new File(Config.profileDir.getPath() + File.separator + slug);
-                if (!packFolder.renameTo(newFolder)) {
-                    System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to rename modpack, but we are continuing anyway."));
-                    newFolder = packFolder;
-                }
-                JSONObject profile = new JSONObject();
-                JSONObject minecraft = (JSONObject) json.get("minecraft");
-                String[] launcher = ((String) ((JSONObject) ((JSONArray) minecraft.get("modLoaders")).get(0)).get("id")).split("-", 2);
-                profile.put("name", json.get("name"));
-                profile.put("mcVer", minecraft.get("version"));
-                profile.put("launcher", launcher[0]);
-                profile.put("modVer", launcher[1]);
-                PrintWriter pw = new PrintWriter(newFolder.getPath() + File.separator + "profile.json");
-                pw.write(profile.toJSONString());
+                if (toCD) {
+                    File current = new File(".");
+                    for (File file : Config.tempDir.listFiles()) {
+                        if (file.getName().equals(zipped.getName())) continue;
+                        if (file.isFile()) FileUtils.moveFileToDirectory(file, current, true);
+                        else FileUtils.moveDirectoryToDirectory(file, current, true);
+                    }
+                    FileUtils.deleteDirectory(Config.tempDir);
+                } else {
+                    FileUtils.moveDirectoryToDirectory(Config.tempDir, Config.profileDir, true);
+                    if (!Config.profileDir.exists() || !Config.profileDir.isDirectory()) Config.profileDir.mkdir();
+                    File packFolder = new File(Config.profileDir.getPath() + File.separator + "tmp");
+                    File newFolder = new File(Config.profileDir.getPath() + File.separator + slug);
+                    if (!packFolder.renameTo(newFolder)) {
+                        System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to rename modpack, but we are continuing anyway."));
+                        newFolder = packFolder;
+                    }
+                    JSONObject profile = new JSONObject();
+                    JSONObject minecraft = (JSONObject) json.get("minecraft");
+                    String[] launcher = ((String) ((JSONObject) ((JSONArray) minecraft.get("modLoaders")).get(0)).get("id")).split("-", 2);
+                    profile.put("name", json.get("name"));
+                    profile.put("mcVer", minecraft.get("version"));
+                    profile.put("launcher", launcher[0]);
+                    profile.put("modVer", launcher[1]);
+                    PrintWriter pw = new PrintWriter(newFolder.getPath() + File.separator + "profile.json");
+                    pw.write(profile.toJSONString());
 
-                pw.flush();
-                pw.close();
-                manifest.delete();
+                    pw.flush();
+                    pw.close();
+                    manifest.delete();
+                }
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Converted modpack " + slug + " into profile."));
+                imported = true;
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!silent) e.printStackTrace();
             }
+            try {
+                if (Config.tempDir.exists() && Config.tempDir.isDirectory()) FileUtils.deleteDirectory(Config.tempDir);
+            } catch (Exception ignored) { }
         }
+        return imported;
+    }
+
+    public static boolean findAndImport() {
+        try {
+            File currentDir = new File(".");
+            return importProf(currentDir.list((dir, name) -> name.endsWith(".zip")), true, true);
+        } catch (Exception ignored) { }
+        return false;
     }
 
     public static void printHelp(String prefix) {

@@ -37,31 +37,30 @@ public class Config {
 
     private static void createDefaultConfig() {
         directory = new File("./curseforge-cli");
-        if (!directory.exists()) directory.mkdir();
         save();
     }
 
     public static void load() {
         File config = new File("./cf.json");
-        if (!config.exists()) {
-            createDefaultConfig();
-            return;
-        }
+        if (!config.exists()) createDefaultConfig();
         JSONParser parser = new JSONParser();
         try {
             JSONObject json = (JSONObject) parser.parse(new FileReader(config));
             directory = new File((String) json.getOrDefault("directory", "./curseforge-cli"));
-            if (!directory.exists() || !directory.isDirectory()) directory.mkdir();
             modpackDir = new File(directory.getPath() + File.separator + "modpack");
-            if (!modpackDir.exists() || !modpackDir.isDirectory()) modpackDir.mkdir();
             profileDir = new File(directory.getPath() + File.separator + "profile");
-            if (!profileDir.exists() || !profileDir.isDirectory()) profileDir.mkdir();
             exportDir = new File(directory.getPath() + File.separator + "exported");
-            if (!exportDir.exists() || !exportDir.isDirectory()) exportDir.mkdir();
             tempDir = new File(directory.getPath() + File.separator + "tmp");
         } catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void createDirs() {
+        if (!directory.exists() || !directory.isDirectory()) directory.mkdir();
+        if (!modpackDir.exists() || !modpackDir.isDirectory()) modpackDir.mkdir();
+        if (!profileDir.exists() || !profileDir.isDirectory()) profileDir.mkdir();
+        if (!exportDir.exists() || !exportDir.isDirectory()) exportDir.mkdir();
     }
 
     public static Map<Integer, String> loadModpacks() {

@@ -15,16 +15,19 @@ public class Main {
         Config.load();
         int index = Arrays.asList(args).indexOf("--args");
         if (index < 0) {
+            if (Profile.findAndImport()) return;
             printHelp();
             return;
         }
         args = Arrays.stream(args).skip(index + 1).toArray(String[]::new);
+        if (args.length < 1 && Profile.findAndImport()) return;
+        Config.createDirs();
         if (args.length < 1 || args[0].equalsIgnoreCase("help")) printHelp();
         else if (args[0].equalsIgnoreCase("mod")) Mod.run(args);
         else if (args[0].equalsIgnoreCase("modpack")) Modpack.run(args);
         else if (args[0].equalsIgnoreCase("profile")) Profile.run(args);
         else if (args[0].equalsIgnoreCase("config")) Config.run(args);
-        System.out.println(ansi().reset().a("Job done!"));
+        System.out.println(ansi().reset());
         AnsiConsole.systemUninstall();
     }
 
@@ -46,5 +49,7 @@ public class Main {
         Modpack.printHelp("\t");
         Profile.printHelp("\t");
         Mod.printHelp("\t");
+        System.out.println();
+        System.out.println("You can also put this in the same directory with a CurseForge export to install it.");
     }
 }

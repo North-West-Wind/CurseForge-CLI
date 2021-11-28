@@ -29,6 +29,10 @@ Written in Java. Designed for all platform and portable use.
 - `mod` Commands for mods.
   - `search <keywords>` Search for mods with keywords. Will also export results to file for easier adding to profile.
 
+### Other Features
+If you put the JAR file together with a zip of the exported profile, CurseForge CLI will automatically install that profile to the current directory.  
+This has 1 limitation, which is you should not put multiple zip files in the same directory.
+
 ### Note
 When you run the CLI, you should see a new file called `cf.json`. It is essentially the save file of the program. If you don't know what you are doing, do not touch it.
 

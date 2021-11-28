@@ -76,7 +76,7 @@ public class Modpack {
             File manifest = new File(folder + File.separator + "manifest.json");
             JSONObject json = (JSONObject) parser.parse(new FileReader(manifest));
             JSONArray array = (JSONArray) json.get("files");
-            int i = 0, suc = 0, fai = 0, lastlength = 0;
+            int i = 0, suc = 0, fai = 0;
             for (Object o : array) {
                 String name = "";
                 try {
@@ -95,12 +95,7 @@ public class Modpack {
                     fai++;
                     e.printStackTrace();
                 } finally {
-                    StringBuilder formatted = new StringBuilder(String.format("[%d/%d] [S: %d | F: %d] Downloaded %s", ++i, array.size(), suc, fai, name));
-                    int ll = formatted.length() - lastlength;
-                    if (ll > 0) for (int ii = 0; ii < ll; ii++) formatted.append(" ");
-                    System.out.print(Ansi.ansi().fg(Ansi.Color.GREEN).a(formatted.toString()).reset().a("\r"));
-                    System.out.flush();
-                    lastlength = formatted.length();
+                    System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a(String.format("[%d/%d] [S: %d | F: %d] Downloaded %s", ++i, array.size(), suc, fai, name)));
                 }
             }
             System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(String.format("Iterated through %d projects. %d success, %d failed", i, suc, fai)));
