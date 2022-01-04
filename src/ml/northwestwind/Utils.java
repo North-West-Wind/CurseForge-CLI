@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -20,6 +21,7 @@ import java.util.zip.ZipOutputStream;
 
 public class Utils {
     private static final int BUFFER_SIZE = 4096;
+    private static final String UPDATE_URL = "https://raw.githubusercontent.com/North-West-Wind/CurseForge-CLI/main/update.json";
     public static void invalid() {
         System.err.println("Invalid usage. Use \"curseforge help\" for command list,");
     }
@@ -151,13 +153,17 @@ public class Utils {
     }
 
     public static Object readJsonFromUrl(String url) {
+        return readJsonFromUrl(url, true);
+    }
+
+    public static Object readJsonFromUrl(String url, boolean printError) {
         JSONParser parser = new JSONParser();
         try (InputStream is = new URL(url).openStream()) {
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String jsonText = readAll(rd);
             return parser.parse(jsonText);
         } catch (Exception e) {
-            e.printStackTrace();
+            if (printError) e.printStackTrace();
             return null;
         }
     }
@@ -233,5 +239,27 @@ public class Utils {
             if (versions.stream().filter(ver -> isMCVersionValid((String) ver)).count() <= 0) versionMatch = true;
         } else versionMatch = true;
         return versionMatch && launcherMatch;
+    }
+
+    public static void readUpdate() {
+        Object received = readJsonFromUrl(UPDATE_URL, false);
+        if (received == null) return;
+        JSONObject json = (JSONObject) received;
+        String latest = (String) json.get("latest");
+        if (!latest.equals(Constants.VERSION)) {
+            JSONObject details = (JSONObject) json.get(latest);
+            String title = (String) details.get("title");
+            String desc = (String) details.getOrDefault("description", "");
+            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("New version available: ").a(latest).reset());
+            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a(title).reset());
+            if (!desc.isEmpty()) System.out.println(Ansi.ansi().fg(Ansi.Color.CYAN).a(desc).reset());
+        }
+    }
+
+    public static String getMinecraftPath() {
+        if (Constants.IS_UNIX) return System.getProperty("user.home") + "/.minecraft";
+        else if (Constants.IS_MAC) return System.getProperty("user.home") + "/Library/Application Support/minecraft";
+        else if (Constants.IS_WINDOWS) return System.getenv("APPDATA") + "/.minecraft";
+        else return null;
     }
 }

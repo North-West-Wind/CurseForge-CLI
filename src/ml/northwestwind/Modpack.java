@@ -10,6 +10,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -54,6 +58,8 @@ public class Modpack {
                 if (!manifest.exists()) throw new Exception("Cannot find modpack manifest of "+name);
                 copyFromOverride(packFolder.getPath(), (String) ((JSONObject) parser.parse(new FileReader(manifest))).get("overrides"));
                 downloadMods(packFolder.getPath());
+                String thumb = downloadThumb(json);
+                genProfile(name, packFolder.getAbsolutePath(), thumb);
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Finished download of " + name).reset());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -102,6 +108,56 @@ public class Modpack {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static String downloadThumb(JSONObject json) {
+        if (!(json.get("attachments") instanceof JSONArray) || !(((JSONArray) json.get("attachments")).get(0) instanceof JSONObject)) return null;
+        JSONObject attachment = (JSONObject) ((JSONArray) json.get("attachments")).get(0);
+        if (!attachment.containsKey("url")) return null;
+        try {
+            if (!Config.tempDir.exists()) Config.tempDir.mkdir();
+            return Utils.downloadFile((String) attachment.get("url"), Config.tempDir.getAbsolutePath(), "thumbnail.png");
+        } catch (Exception ignored) { }
+        return null;
+    }
+
+    private static void genProfile(String name, String path, String icon) {
+        String base64 = null;
+        if (icon != null) {
+            try {
+                byte[] fileContent = FileUtils.readFileToByteArray(new File(icon));
+                base64 = "data:image/png;base64," + Base64.getEncoder().encodeToString(fileContent);
+            } catch (Exception ignored) { }
+            try { FileUtils.deleteDirectory(Config.tempDir); } catch (Exception ignored) { }
+        }
+        try {
+            File profileFile = new File(Utils.getMinecraftPath() + File.separator + "launcher_profiles.json");
+            if (!profileFile.exists() || !profileFile.isFile()) return;
+            JSONObject json = (JSONObject) parser.parse(new FileReader(profileFile));
+            JSONObject profiles = (JSONObject) json.get("profiles");
+            JSONObject profile = new JSONObject();
+            profile.put("created", LocalDateTime.now(ZoneId.of("UTC")).toString());
+            profile.put("gameDir", path);
+            if (base64 == null) profile.put("icon", "Furnace_On");
+            else profile.put("icon", base64);
+            int memory = (int) Math.ceil(Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0 / 1024.0);
+            profile.put("javaArgs", String.format("-Xmx%dG -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=32M", memory));
+            profile.put("lastUsed", LocalDateTime.of(LocalDate.MIN, LocalTime.MIN).atZone(ZoneId.of("UTC")).toString());
+            profile.put("lastVersionId", "latest-release");
+            profile.put("name", name);
+            profile.put("type", "custom");
+            profiles.put(UUID.randomUUID(), profile);
+            json.put("profiles", profiles);
+
+            PrintWriter pw = new PrintWriter(profileFile);
+            pw.write(json.toJSONString());
+
+            pw.flush();
+            pw.close();
+            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Created profile for " + name + ". However, the mod loader is not configured correctly. Please open/restart your Minecraft Launcher to edit it. Installation of mod loader might be needed, and can be downloaded in the following:").reset());
+            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Forge: ").fg(Ansi.Color.CYAN).a("https://files.minecraftforge.net/").reset());
+            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Fabric: ").fg(Ansi.Color.CYAN).a("https://fabricmc.net/use/installer/").reset());
+        } catch (Exception ignored) { }
     }
 
     private static void delete(String[] ids) {

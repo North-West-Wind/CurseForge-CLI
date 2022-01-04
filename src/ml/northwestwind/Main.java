@@ -12,6 +12,7 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("CurseForge CLI v" + Constants.VERSION);
         AnsiConsole.systemInstall();
+        Utils.readUpdate();
         Config.load();
         int index = Arrays.asList(args).indexOf("--args");
         if (index < 0) {
