@@ -38,5 +38,7 @@ When you run the CLI, you should see a new file called `cf.json`. It is essentia
 
 You will find modpack/mod name with some numbers after it. That is totally intentional. Do not attempt to remove it. It is used for recognition.
 
+Installing a modpack will also generate a profile. However, the profile doesn't use the correct mod loader. Please install the mod loader yourself as instructed.
+
 ## License
 GNU GPLv3
