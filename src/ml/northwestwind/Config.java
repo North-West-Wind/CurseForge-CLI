@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 public class Config {
     public static File directory, modpackDir, profileDir, exportDir, tempDir;
+    public static boolean acceptParentVersionMod;
 
     public static void run(String[] args) {
         if (args.length < 3) {
@@ -51,6 +52,7 @@ public class Config {
             profileDir = new File(directory.getPath() + File.separator + "profile");
             exportDir = new File(directory.getPath() + File.separator + "exported");
             tempDir = new File(directory.getPath() + File.separator + "tmp");
+            acceptParentVersionMod = (boolean) json.getOrDefault("acceptParent", true);
         } catch(Exception e) {
             e.printStackTrace();
         }

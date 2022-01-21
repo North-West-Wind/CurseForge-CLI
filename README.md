@@ -29,6 +29,12 @@ Written in Java. Designed for all platform and portable use.
 - `mod` Commands for mods.
   - `search <keywords>` Search for mods with keywords. Will also export results to file for easier adding to profile.
 
+### Configuration
+You can configure CurseForge CLI by editing `cf.json`. The file should be generated once the JAR file has run once.  
+These are the options you can edit:
+- `directory` The directory where modpacks and profiles are stored. Default: `./curseforge-cli`
+- `acceptParent` Whether mods with only the parent version of a profile is accepted. For example, you can install a 1.18 mod into a 1.18.1 profile. Default: `true`
+
 ### Other Features
 If you put the JAR file together with a zip of the exported profile, CurseForge CLI will automatically install that profile to the current directory.  
 This has 1 limitation, which is you should not put multiple zip files in the same directory.

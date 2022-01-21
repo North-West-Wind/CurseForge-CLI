@@ -232,13 +232,23 @@ public class Utils {
 
     public static boolean checkVersion(JSONArray versions, JSONObject config) {
         String requiredVer = (String) config.get("mcVer");
-        String oppoLauncher = getOppositeLauncher((String) config.get("launcher"));
+        String launcher = (String) config.get("launcher");
+        String oppoLauncher = getOppositeLauncher(launcher);
         boolean launcherMatch = false, versionMatch = false;
-        if (oppoLauncher == null || !versions.contains(oppoLauncher)) launcherMatch = true;
+        if (oppoLauncher == null || !versions.contains(oppoLauncher) || (versions.contains(oppoLauncher) && versions.contains(launcher))) launcherMatch = true;
         if (!versions.contains(requiredVer)) {
-            if (versions.stream().filter(ver -> isMCVersionValid((String) ver)).count() <= 0) versionMatch = true;
+            if (Config.acceptParentVersionMod && !versions.contains(parentVersion(requiredVer))) {
+                if (versions.stream().noneMatch(ver -> isMCVersionValid((String) ver))) versionMatch = true;
+            } else versionMatch = true;
         } else versionMatch = true;
         return versionMatch && launcherMatch;
+    }
+
+    private static String parentVersion(String version) {
+        if (!isMCVersionValid(version)) return null;
+        String[] splitted = version.replace("-Snapshot", "").split("\\.");
+        if (splitted.length != 3) return version;
+        return splitted[0] + "." + splitted[1];
     }
 
     public static void readUpdate() {

@@ -1,6 +1,10 @@
 {
+  "1.2.1": {
+    "title": "Added acceptParent option",
+    "description": "acceptParent allows user to install mods supporting only the parent version of a profile. Refer to the README in the repository for more details."
+  },
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.2.0"
+  "latest": "1.2.1"
 }

@@ -46,7 +46,7 @@ public class Profile {
                 name = null;
             }
         }
-        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Minecraft version: ").reset());
+        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Minecraft version [1.x.x/1.x.x-Snapshot]: ").reset());
         String mcVer = null;
         while (mcVer == null) {
             mcVer = scanner.nextLine();
