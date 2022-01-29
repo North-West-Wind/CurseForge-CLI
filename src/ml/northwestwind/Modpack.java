@@ -16,6 +16,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class Modpack {
     private static final JSONParser parser = new JSONParser();
@@ -49,17 +50,19 @@ public class Modpack {
                 File packFolder = new File(Config.modpackDir.getPath() + File.separator +slug+"_"+id);
                 if (packFolder.exists()) throw new Exception("Found old folder of "+name+". Installation of "+name+" cancelled.");
                 packFolder.mkdir();
-                String downloadUrl = ((String) ((JSONObject) Utils.getLast((JSONArray) json.get("latestFiles"))).get("downloadUrl")).replaceFirst("edge", "media");
+                JSONObject latest = (JSONObject) Utils.getLast((JSONArray) json.get("latestFiles"));
+                String downloadUrl = ((String) latest.get("downloadUrl")).replaceFirst("edge", "media");
                 String loc = Utils.downloadFile(downloadUrl, packFolder.getPath());
                 if (loc == null) throw new Exception("Failed to download modpack " + name);
                 boolean success = Utils.unzip(loc);
                 if (!success) throw new Exception("Failed to extract modpack content of "+name);
-                File manifest = new File(packFolder + File.separator + "manifest.json");
+                File manifest = new File(packFolder + File.separator + getManifestFile(latest));
                 if (!manifest.exists()) throw new Exception("Cannot find modpack manifest of "+name);
-                copyFromOverride(packFolder.getPath(), (String) ((JSONObject) parser.parse(new FileReader(manifest))).get("overrides"));
+                JSONObject manifestJson = (JSONObject) parser.parse(new FileReader(manifest));
+                copyFromOverride(packFolder.getPath(), (String) manifestJson.get("overrides"));
                 downloadMods(packFolder.getPath());
                 String thumb = downloadThumb(json);
-                genProfile(name, packFolder.getAbsolutePath(), thumb);
+                genProfile(name, packFolder.getAbsolutePath(), thumb, getModVersion(manifestJson));
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Finished download of " + name).reset());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -110,6 +113,39 @@ public class Modpack {
         }
     }
 
+    // Pass in latestFiles' last element
+    private static String getManifestFile(JSONObject latest) {
+        if (latest.containsKey("modules")) {
+            JSONArray modules = (JSONArray) latest.get("modules");
+            Optional optional = modules.stream().filter(obj -> ((int) ((JSONObject) obj).getOrDefault("type", 0)) == 3).findFirst();
+            if (optional.isPresent()) return (String) ((JSONObject) optional.get()).get("foldername");
+        }
+        return "manifest.json";
+    }
+
+    // Get mod loader version from manifest
+    private static String getModVersion(JSONObject manifest) {
+        if (manifest.containsKey("minecraft")) {
+            JSONObject minecraft = (JSONObject) manifest.get("minecraft");
+            if (minecraft.containsKey("version") && minecraft.containsKey("modLoaders")) {
+                JSONArray modLoaders = (JSONArray) minecraft.get("modLoaders");
+                Optional optional = modLoaders.stream().filter(obj -> (boolean) ((JSONObject) obj).getOrDefault("primary", false)).findFirst();
+                if (optional.isPresent()) {
+                    String version = (String) minecraft.get("version");
+                    String id = (String) ((JSONObject) optional.get()).get("id");
+                    String[] splitted = id.split("-");
+                    String loader = splitted[0];
+                    String modVer = Arrays.stream(splitted).skip(1).collect(Collectors.joining("-"));
+                    if (loader.equalsIgnoreCase("forge")) id = version + "-forge-" + modVer;
+                    else if (loader.equalsIgnoreCase("fabric")) id = "fabric-loader-" + modVer + "-" + version;
+                    else id = null;
+                    return id;
+                }
+            }
+        }
+        return null;
+    }
+
     private static String downloadThumb(JSONObject json) {
         if (!(json.get("attachments") instanceof JSONArray) || !(((JSONArray) json.get("attachments")).get(0) instanceof JSONObject)) return null;
         JSONObject attachment = (JSONObject) ((JSONArray) json.get("attachments")).get(0);
@@ -121,7 +157,7 @@ public class Modpack {
         return null;
     }
 
-    private static void genProfile(String name, String path, String icon) {
+    private static void genProfile(String name, String path, String icon, String loader) {
         String base64 = null;
         if (icon != null) {
             try {
@@ -143,7 +179,7 @@ public class Modpack {
             int memory = (int) Math.ceil(Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0 / 1024.0);
             profile.put("javaArgs", String.format("-Xmx%dG -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=32M", memory));
             profile.put("lastUsed", LocalDateTime.of(LocalDate.MIN, LocalTime.MIN).atZone(ZoneId.of("UTC")).toString());
-            profile.put("lastVersionId", "latest-release");
+            profile.put("lastVersionId", loader == null ? "latest-release" : loader);
             profile.put("name", name);
             profile.put("type", "custom");
             profiles.put(UUID.randomUUID(), profile);
@@ -154,9 +190,12 @@ public class Modpack {
 
             pw.flush();
             pw.close();
-            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Created profile for " + name + ". However, the mod loader is not configured correctly. Please open/restart your Minecraft Launcher to edit it. Installation of mod loader might be needed, and can be downloaded in the following:").reset());
-            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Forge: ").fg(Ansi.Color.CYAN).a("https://files.minecraftforge.net/").reset());
-            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Fabric: ").fg(Ansi.Color.CYAN).a("https://fabricmc.net/use/installer/").reset());
+            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Created profile for " + name + ".").reset());
+            if (loader == null) {
+                System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(" However, the mod loader is not configured correctly. Please open/restart your Minecraft Launcher to edit it. Installation of mod loader might be needed, and can be downloaded in the following:").reset());
+                System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Forge: ").fg(Ansi.Color.CYAN).a("https://files.minecraftforge.net/").reset());
+                System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Fabric: ").fg(Ansi.Color.CYAN).a("https://fabricmc.net/use/installer/").reset());
+            }
         } catch (Exception ignored) { }
     }
 

@@ -1,4 +1,8 @@
 {
+  "1.2.2": {
+    "title": "Manifest Finding & Better Profile Generation",
+    "description": "Profiles will now be generated with the responsible mod loader (but that does not mean it is installed). Some modpack does not hold their information in manifest.json, so we use the API to find the required file."
+  },
   "1.2.1": {
     "title": "Added acceptParent option",
     "description": "acceptParent allows user to install mods supporting only the parent version of a profile. Refer to the README in the repository for more details."
