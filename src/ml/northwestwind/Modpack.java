@@ -117,7 +117,7 @@ public class Modpack {
     private static String getManifestFile(JSONObject latest) {
         if (latest.containsKey("modules")) {
             JSONArray modules = (JSONArray) latest.get("modules");
-            Optional optional = modules.stream().filter(obj -> ((int) ((JSONObject) obj).getOrDefault("type", 0)) == 3).findFirst();
+            Optional optional = modules.stream().filter(obj -> ((long) ((JSONObject) obj).getOrDefault("type", 0)) == 3).findFirst();
             if (optional.isPresent()) return (String) ((JSONObject) optional.get()).get("foldername");
         }
         return "manifest.json";

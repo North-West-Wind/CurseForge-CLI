@@ -12,8 +12,8 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("CurseForge CLI v" + Constants.VERSION);
         AnsiConsole.systemInstall();
-        Utils.readUpdate();
         Config.load();
+        if (!Config.suppressUpdates) Utils.readUpdate();
         int index = Arrays.asList(args).indexOf("--args");
         if (index < 0) {
             if (Profile.findAndImport()) return;
