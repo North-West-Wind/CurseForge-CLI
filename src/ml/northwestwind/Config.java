@@ -94,7 +94,7 @@ public class Config {
         File[] files = new File(profileDir.getPath() + File.separator + profile + File.separator + "mods").listFiles();
         Map<Integer, Map.Entry<Integer, String>> map = new HashMap<>();
         for (File file : files) {
-            if (file.isDirectory()) continue;
+            if (file.isDirectory() || !file.getName().endsWith(".jar")) continue;
             String[] splitted = file.getName().replace(".jar", "").split("_");
             String fileId = Utils.getLast(Arrays.asList(splitted));
             if (!Utils.isInteger(fileId)) continue;
