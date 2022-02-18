@@ -1,4 +1,7 @@
 {
+  "1.2.5": {
+    "title": "Fixed modpack installation error again"
+  },
   "1.2.4": {
     "title": "Split Update and Repair",
     "description": "Modpack update will now not re-download every single mod. If you want to repair an installed modpack, use modpack repair instead."
@@ -17,5 +20,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.2.4"
+  "latest": "1.2.5"
 }
