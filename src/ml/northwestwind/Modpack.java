@@ -101,7 +101,7 @@ public class Modpack {
                     if (!force && mods.containsKey(project) && mods.get(project).equalsIgnoreCase(file)) ski++;
                     else {
                         JSONArray files = (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + project + "/files");
-                        Optional f = files.stream().filter(o1 -> ((JSONObject) o1).get("id").equals(file)).findFirst();
+                        Optional f = files.stream().filter(o1 -> Long.toString((long) ((JSONObject) o1).get("id")).equalsIgnoreCase(file)).findFirst();
                         if (!f.isPresent()) throw new Exception("Cannot find required file of project " + project);
                         JSONObject j = (JSONObject) f.get();
                         name = (String) j.get("displayName");
