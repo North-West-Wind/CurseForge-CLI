@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -271,5 +270,24 @@ public class Utils {
         else if (Constants.IS_MAC) return System.getProperty("user.home") + "/Library/Application Support/minecraft";
         else if (Constants.IS_WINDOWS) return System.getenv("APPDATA") + "/.minecraft";
         else return null;
+    }
+
+    public static <T> T runRetry(SupplierWithException<T> supplier) throws Exception {
+        T obj = null;
+        long tries = 0;
+        while (obj == null) {
+            try {
+                obj = supplier.getWithException();
+            } catch (Exception e) {
+                if (tries == Config.retries) throw e;
+                tries++;
+            }
+        }
+        return obj;
+    }
+
+    @FunctionalInterface
+    public interface SupplierWithException<T> {
+        public T getWithException() throws Exception;
     }
 }

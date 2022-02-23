@@ -8,6 +8,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
+import java.nio.file.FileSystemException;
+import java.rmi.NoSuchObjectException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -161,7 +163,7 @@ public class Profile {
         List<String> folders = new ArrayList<>();
         for (String name : names) {
             try {
-                if (!profiles.contains(name)) throw new Exception("Cannot find profile with name " + name);
+                if (!profiles.contains(name)) throw new NoSuchObjectException("Cannot find profile with name " + name);
                 folders.add(name);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -217,13 +219,13 @@ public class Profile {
         Map<Integer, Map.Entry<Integer, String>> mods = Config.loadMods(profile);
         for (String id : Arrays.stream(ids).skip(1).toArray(String[]::new)) {
             try {
-                if (!Utils.isInteger(id)) throw new Exception("Mod ID is invalid: "+id);
-                JSONObject json = (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id);
-                if (json == null || ((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6) throw new Exception("The ID "+id+" does not represent a mod.");
-                JSONArray files = (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files");
+                if (!Utils.isInteger(id)) throw new NoSuchObjectException("Mod ID is invalid: "+id);
+                JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id));
+                if (((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6) throw new NoSuchObjectException("The ID "+id+" does not represent a mod.");
+                JSONArray files = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files"));
                 List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersion"), config)).collect(Collectors.toList());
                 f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
-                if (f.size() < 1) throw new Exception("No available file of " + id + " found for this profile.");
+                if (f.size() < 1) throw new InputMismatchException("No available file of " + id + " found for this profile.");
                 JSONObject bestFile = (JSONObject) f.get(0);
                 String downloadUrl = (String) bestFile.get("downloadUrl");
                 if (mods.containsKey(Integer.parseInt(id))) new File(modsFolder.getPath() + File.separator + mods.get(Integer.parseInt(id)).getValue() + "_" + id + "_" + mods.get(Integer.parseInt(id)).getKey() + ".jar").delete();
@@ -251,7 +253,7 @@ public class Profile {
                 if (Utils.isInteger(id)) {
                     Map.Entry<Integer, String> entry = mods.getOrDefault(Integer.parseInt(id), new Utils.NullEntry<>());
                     String file = entry.getValue();
-                    if (file == null) throw new Exception("Cannot find mod with ID " + id);
+                    if (file == null) throw new NoSuchObjectException("Cannot find mod with ID " + id);
                     name = file + "_" + id + "_" + entry.getKey();
                     modName = file;
                 } else {
@@ -260,7 +262,7 @@ public class Profile {
                         modName = entry.getValue().getValue();
                         break;
                     }
-                    if (name == null) throw new Exception("Cannot find mod with name " + id);
+                    if (name == null) throw new NoSuchObjectException("Cannot find mod with name " + id);
                 }
                 files.put(name + ".jar", modName);
             } catch (Exception e) {
@@ -437,9 +439,9 @@ public class Profile {
             Map<Integer, String> updatables = new HashMap<>();
             for (Map.Entry<Integer, Map.Entry<Integer, String>> entry : mods.entrySet()) {
                 try {
-                    JSONObject json = (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + entry.getKey());
-                    if (json == null || ((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6) throw new Exception("The ID "+entry.getKey()+" does not represent a mod.");
-                    JSONArray files = (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + entry.getKey() + "/files");
+                    JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + entry.getKey()));
+                    if (((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6) throw new NoSuchObjectException("The ID "+entry.getKey()+" does not represent a mod.");
+                    JSONArray files = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + entry.getKey() + "/files"));
                     List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersion"), config)).collect(Collectors.toList());
                     f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
                     if (f.size() < 1) continue;
@@ -470,13 +472,13 @@ public class Profile {
 
         for (String id : Arrays.stream(args).skip(1).toArray(String[]::new)) {
             try {
-                if (!Utils.isInteger(id)) throw new Exception("Mod ID is invalid: "+id);
-                JSONObject json = (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id);
-                if (json == null || ((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6) throw new Exception("The ID "+id+" does not represent a mod.");
-                JSONArray files = (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files");
+                if (!Utils.isInteger(id)) throw new NoSuchObjectException("Mod ID is invalid: "+id);
+                JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id));
+                if (((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6) throw new NoSuchObjectException("The ID "+id+" does not represent a mod.");
+                JSONArray files = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files"));
                 List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersion"), config)).collect(Collectors.toList());
                 f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
-                if (f.size() < 1) throw new Exception("No available file of " + id + " found for this profile.");
+                if (f.size() < 1) throw new InputMismatchException("No available file of " + id + " found for this profile.");
                 JSONObject bestFile = (JSONObject) f.get(0);
                 Map.Entry<Integer, String> entry = mods.get(Integer.parseInt(id));
                 if (((long) bestFile.get("id")) > entry.getKey()) {
@@ -507,13 +509,13 @@ public class Profile {
             }
             File zipped = new File(path);
             try {
-                if (!zipped.exists()) throw new Exception("The file " + path + " does not exist");
+                if (!zipped.exists()) throw new FileNotFoundException("The file " + path + " does not exist");
                 if (zipped.isFile()) {
                     FileUtils.copyFileToDirectory(zipped, Config.tempDir);
-                    if (!Utils.unzip(Config.tempDir.getPath() + File.separator + zipped.getName())) throw new Exception("Failed to extract modpack content of "+path);
+                    if (!Utils.unzip(Config.tempDir.getPath() + File.separator + zipped.getName())) throw new FileSystemException("Failed to extract modpack content of "+path);
                 } else FileUtils.copyDirectoryToDirectory(zipped, Config.tempDir);
                 File manifest = new File(Config.tempDir.getPath() + File.separator + "manifest.json");
-                if (!manifest.exists() || !manifest.isFile()) throw new Exception("Modpack is missing manifest. Cannot convert to profile.");
+                if (!manifest.exists() || !manifest.isFile()) throw new FileNotFoundException("Modpack is missing manifest. Cannot convert to profile.");
                 Modpack.copyFromOverride(Config.tempDir.getPath(), (String) ((JSONObject) parser.parse(new FileReader(manifest))).get("overrides"));
                 Modpack.downloadMods(Config.tempDir.getPath());
                 JSONObject json = (JSONObject) parser.parse(new FileReader(manifest));

@@ -1,4 +1,8 @@
 {
+  "1.2.6": {
+    "title": "Download Retry, Ask Old Folder Deletion and Throw Suitable Exceptions",
+    "description": "Project downloads now come with a retry option, which allows the program to retry downloading if it failed. Sometimes an old folder of a modpack exists due to failed installation. The program will now ask if it should delete it. Exceptions thrown are now more specific."
+  },
   "1.2.5": {
     "title": "Fixed modpack installation error again"
   },
@@ -20,5 +24,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.2.5"
+  "latest": "1.2.6"
 }

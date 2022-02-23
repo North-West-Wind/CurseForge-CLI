@@ -7,6 +7,7 @@ import org.json.simple.JSONObject;
 
 import java.io.PrintWriter;
 import java.net.URLEncoder;
+import java.rmi.NoSuchObjectException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,8 +27,8 @@ public class Mod {
 
     private static void search(String[] keywords) {
         try {
-            JSONArray json = (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + "search?gameId=432&sectionId=6&searchFilter=" + URLEncoder.encode(String.join(" ", keywords), Charsets.UTF_8.name()));
-            if (json == null || json.size() < 1) throw new Exception("No mods found.");
+            JSONArray json = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + "search?gameId=432&sectionId=6&searchFilter=" + URLEncoder.encode(String.join(" ", keywords), Charsets.UTF_8.name())));
+            if (json.size() < 1) throw new NoSuchObjectException("No mods found.");
             Map<Long, String> mods = new HashMap<>();
             json.forEach(o -> {
                 JSONObject jo = (JSONObject) o;
