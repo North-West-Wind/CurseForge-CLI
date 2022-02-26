@@ -21,22 +21,23 @@ import java.util.zip.ZipOutputStream;
 public class Utils {
     private static final int BUFFER_SIZE = 4096;
     private static final String UPDATE_URL = "https://raw.githubusercontent.com/North-West-Wind/CurseForge-CLI/main/update.json";
+
     public static void invalid() {
         System.err.println("Invalid usage. Use \"curseforge help\" for command list,");
     }
 
     public static boolean isInteger(String s) {
-        return isInteger(s,10);
+        return isInteger(s, 10);
     }
 
     public static boolean isInteger(String s, int radix) {
-        if(s.isEmpty()) return false;
-        for(int i = 0; i < s.length(); i++) {
-            if(i == 0 && s.charAt(i) == '-') {
-                if(s.length() == 1) return false;
+        if (s.isEmpty()) return false;
+        for (int i = 0; i < s.length(); i++) {
+            if (i == 0 && s.charAt(i) == '-') {
+                if (s.length() == 1) return false;
                 else continue;
             }
-            if(Character.digit(s.charAt(i),radix) < 0) return false;
+            if (Character.digit(s.charAt(i), radix) < 0) return false;
         }
         return true;
     }
@@ -67,8 +68,8 @@ public class Utils {
                 }
             } else {
                 // extracts file name from URL
-                fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
-                        fileURL.length());
+                fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1
+                );
             }
 
             // opens input stream from the HTTP connection
@@ -86,7 +87,8 @@ public class Utils {
 
             outputStream.close();
             inputStream.close();
-        } else System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("No file to download. Server replied HTTP code: " + responseCode));
+        } else
+            System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("No file to download. Server replied HTTP code: " + responseCode));
         httpConn.disconnect();
         return saveFilePath;
     }
@@ -114,7 +116,8 @@ public class Utils {
                         throw new IOException("Failed to create directory " + newFile);
                 } else {
                     File parent = newFile.getParentFile();
-                    if (!parent.isDirectory() && !parent.mkdirs()) throw new IOException("Failed to create directory " + parent);
+                    if (!parent.isDirectory() && !parent.mkdirs())
+                        throw new IOException("Failed to create directory " + parent);
                     FileOutputStream fos = new FileOutputStream(newFile);
                     int len;
                     while ((len = zis.read(buffer)) > 0) fos.write(buffer, 0, len);
@@ -206,23 +209,6 @@ public class Utils {
         fis.close();
     }
 
-    public static class NullEntry<K, V> implements Map.Entry<K, V> {
-        @Override
-        public K getKey() {
-            return null;
-        }
-
-        @Override
-        public V getValue() {
-            return null;
-        }
-
-        @Override
-        public V setValue(V value) {
-            return null;
-        }
-    }
-
     public static String getOppositeLauncher(String launcher) {
         if (launcher.equalsIgnoreCase("forge")) return "Fabric";
         if (launcher.equalsIgnoreCase("fabric")) return "Forge";
@@ -234,7 +220,8 @@ public class Utils {
         String launcher = (String) config.get("launcher");
         String oppoLauncher = getOppositeLauncher(launcher);
         boolean launcherMatch = false, versionMatch = false;
-        if (oppoLauncher == null || !versions.contains(oppoLauncher) || (versions.contains(oppoLauncher) && versions.contains(launcher))) launcherMatch = true;
+        if (oppoLauncher == null || !versions.contains(oppoLauncher) || (versions.contains(oppoLauncher) && versions.contains(launcher)))
+            launcherMatch = true;
         if (!versions.contains(requiredVer)) {
             if (Config.acceptParentVersionMod && !versions.contains(parentVersion(requiredVer))) {
                 if (versions.stream().noneMatch(ver -> isMCVersionValid((String) ver))) versionMatch = true;
@@ -288,6 +275,23 @@ public class Utils {
 
     @FunctionalInterface
     public interface SupplierWithException<T> {
-        public T getWithException() throws Exception;
+        T getWithException() throws Exception;
+    }
+
+    public static class NullEntry<K, V> implements Map.Entry<K, V> {
+        @Override
+        public K getKey() {
+            return null;
+        }
+
+        @Override
+        public V getValue() {
+            return null;
+        }
+
+        @Override
+        public V setValue(V value) {
+            return null;
+        }
     }
 }

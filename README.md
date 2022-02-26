@@ -14,7 +14,7 @@ Written in Java. Designed for all platform and portable use.
 - `config` Configure the program.
   - `directory <path>` Set the working directory of the program.
 - `modpack` Commands for modpack.
-  - `install <ID>` Install modpack(s). The ID parameter is the ID of the modpack found on CurseForge.
+  - `install <ID> [FileID]` Install modpack(s). The ID parameter is the ID of the modpack found on CurseForge. FileID is the ID of the modpack zip file on CurseForge. Omit to install the latest version.
   - `delete <ID|Slug>` Delete modpack(s). The ID/slug parameter is the ID/slug of the modpack.
   - `list` List all installed modpacks.
 - `profile` Commands for custom profile.

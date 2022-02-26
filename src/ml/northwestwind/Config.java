@@ -20,7 +20,8 @@ public class Config {
             Utils.invalid();
             return;
         }
-        if (args[1].equalsIgnoreCase("directory")) setDirectory(Arrays.stream(args).skip(2).collect(Collectors.joining(" ")));
+        if (args[1].equalsIgnoreCase("directory"))
+            setDirectory(Arrays.stream(args).skip(2).collect(Collectors.joining(" ")));
         else Utils.invalid();
     }
 
@@ -56,7 +57,7 @@ public class Config {
             acceptParentVersionMod = (boolean) json.getOrDefault("acceptParent", true);
             suppressUpdates = (boolean) json.getOrDefault("suppressUpdates", false);
             retries = (long) json.getOrDefault("retries", 3L);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -74,8 +75,14 @@ public class Config {
         for (File file : files) {
             if (file.isFile()) continue;
             String[] splitted = file.getName().split("_");
-            String id = Utils.getLast(Arrays.asList(splitted));
-            if (!Utils.isInteger(id)) continue;
+            String fileId = Utils.getLast(Arrays.asList(splitted));
+            if (!Utils.isInteger(fileId)) continue;
+            String[] splitted1 = Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).toArray(String[]::new);
+            String id = Utils.getLast(Arrays.asList(splitted1));
+            if (!Utils.isInteger(id)) {
+                id = fileId;
+                fileId = null;
+            }
             String slug = Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).collect(Collectors.joining("_"));
             map.put(Integer.parseInt(id), slug);
         }
