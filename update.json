@@ -1,4 +1,7 @@
 {
+  "1.2.8": {
+    "title": "Fixed \"update\" still deleting mods"
+  },
   "1.2.7": {
     "title": "Version Controller",
     "description": "You can now download a specific version of modpack by passing in the file ID of a modpack's zip."
@@ -28,5 +31,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.2.7"
+  "latest": "1.2.8"
 }

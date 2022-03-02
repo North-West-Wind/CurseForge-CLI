@@ -29,8 +29,8 @@ public class Modpack {
         }
         args = Arrays.stream(args).skip(2).toArray(String[]::new);
         if (cmd.equalsIgnoreCase("install")) install(args);
-        else if (cmd.equalsIgnoreCase("update")) update(args);
-        else if (cmd.equalsIgnoreCase("repair")) repair(args);
+        else if (cmd.equalsIgnoreCase("update")) update(args, false);
+        else if (cmd.equalsIgnoreCase("repair")) update(args, true);
         else if (cmd.equalsIgnoreCase("delete")) delete(args);
         else if (cmd.equalsIgnoreCase("convert")) convert(args);
         else Utils.invalid();
@@ -318,7 +318,7 @@ public class Modpack {
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("No modpack installed.").reset());
             return;
         }
-        List<String> modpack = new ArrayList<>();
+        List<Ansi> modpack = new ArrayList<>();
         for (Map.Entry<Integer, String> entry : modpacks.entrySet()) {
             String folderName = entry.getValue() + "_" + entry.getKey();
             File manifest = new File(Config.modpackDir.getPath() + File.separator + folderName + File.separator + "manifest.json");
@@ -328,16 +328,16 @@ public class Modpack {
                 String name = (String) json.get("name");
                 String version = (String) json.get("version");
                 String mcVer = (String) ((JSONObject) json.get("minecraft")).get("version");
-                modpack.add(String.format("%s | %s | %s", name, version, mcVer));
+                modpack.add(Ansi.ansi().fg(Ansi.Color.YELLOW).a(name).reset().a(" | ").fg(Ansi.Color.CYAN).a(version).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(mcVer).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(entry.getKey()));
             } catch (Exception ignored) {
             }
         }
         System.out.println(Ansi.ansi().fg(Ansi.Color.CYAN).a("Installed modpacks:"));
-        modpack.forEach(s -> System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(s)));
+        modpack.forEach(System.out::println);
         System.out.println(modpack.size() + " modpacks in total.");
     }
 
-    private static void update(String[] ids) {
+    private static void update(String[] ids, boolean force) {
         Map<Integer, String> modpacks = Config.loadModpacks();
         for (String id : ids) {
             try {
@@ -371,53 +371,9 @@ public class Modpack {
                 if (!success) throw new FileSystemException("Failed to extract modpack content of " + name);
                 File manifest = new File(packFolder + File.separator + "manifest.json");
                 if (!manifest.exists()) throw new FileNotFoundException("Cannot find modpack manifest of " + name);
-                FileUtils.cleanDirectory(new File(packFolder.getPath() + File.separator + "mods"));
+                if (force) FileUtils.cleanDirectory(new File(packFolder.getPath() + File.separator + "mods"));
                 copyFromOverride(packFolder.getPath(), (String) ((JSONObject) parser.parse(new FileReader(manifest))).get("overrides"));
-                downloadMods(packFolder.getPath());
-                System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Finished download of " + name).reset());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static void repair(String[] ids) {
-        Map<Integer, String> modpacks = Config.loadModpacks();
-        for (String id : ids) {
-            try {
-                String slug = null, key = null;
-                if (Utils.isInteger(id)) {
-                    String ss = modpacks.getOrDefault(Integer.parseInt(id), null);
-                    if (ss == null) throw new NoSuchObjectException("Cannot find modpack with ID " + id);
-                    slug = ss;
-                    key = id;
-                } else {
-                    for (Map.Entry<Integer, String> entry : modpacks.entrySet())
-                        if (entry.getValue().equalsIgnoreCase(id)) {
-                            slug = entry.getValue();
-                            key = entry.getKey().toString();
-                            break;
-                        }
-                    if (slug == null) throw new NoSuchObjectException("Cannot find modpack with name " + id);
-                }
-                String finalKey = key;
-                JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + finalKey));
-                if (json == null || ((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 4471)
-                    throw new NoSuchObjectException("The ID " + id + " does not represent a modpack.");
-                String name = (String) json.get("name");
-                System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Repairing ").a(name).a("...").reset());
-                File packFolder = new File(Config.modpackDir.getPath() + File.separator + slug + "_" + key);
-                JSONObject latest = (JSONObject) Utils.getLast((JSONArray) json.get("latestFiles"));
-                String downloadUrl = ((String) latest.get("downloadUrl")).replaceFirst("edge", "media");
-                String loc = Utils.downloadFile(downloadUrl, packFolder.getPath());
-                if (loc == null) throw new SyncFailedException("Failed to download modpack " + name);
-                boolean success = Utils.unzip(loc);
-                if (!success) throw new FileSystemException("Failed to extract modpack content of " + name);
-                File manifest = new File(packFolder + File.separator + "manifest.json");
-                if (!manifest.exists()) throw new FileNotFoundException("Cannot find modpack manifest of " + name);
-                FileUtils.cleanDirectory(new File(packFolder.getPath() + File.separator + "mods"));
-                copyFromOverride(packFolder.getPath(), (String) ((JSONObject) parser.parse(new FileReader(manifest))).get("overrides"));
-                downloadMods(packFolder.getPath(), true);
+                downloadMods(packFolder.getPath(), force);
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Finished download of " + name).reset());
             } catch (Exception e) {
                 e.printStackTrace();
