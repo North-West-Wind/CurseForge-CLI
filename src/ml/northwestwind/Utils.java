@@ -223,9 +223,8 @@ public class Utils {
         if (oppoLauncher == null || !versions.contains(oppoLauncher) || (versions.contains(oppoLauncher) && versions.contains(launcher)))
             launcherMatch = true;
         if (!versions.contains(requiredVer)) {
-            if (Config.acceptParentVersionMod && !versions.contains(parentVersion(requiredVer))) {
-                if (versions.stream().noneMatch(ver -> isMCVersionValid((String) ver))) versionMatch = true;
-            } else versionMatch = true;
+            if (Config.acceptParentVersionMod && versions.contains(parentVersion(requiredVer))) versionMatch = true;
+            else if (!versions.contains(parentVersion(requiredVer)) && versions.stream().noneMatch(ver -> isMCVersionValid((String) ver))) versionMatch = true;
         } else versionMatch = true;
         return versionMatch && launcherMatch;
     }

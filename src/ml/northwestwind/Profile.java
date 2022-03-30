@@ -479,6 +479,10 @@ public class Profile {
         for (String id : Arrays.stream(args).skip(1).toArray(String[]::new)) {
             try {
                 if (!Utils.isInteger(id)) throw new NoSuchObjectException("Mod ID is invalid: " + id);
+                if (!mods.containsKey(Integer.parseInt(id))) {
+                    System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Cannot find mod with ID " + id + " installed. Skipping updating this mod..."));
+                    continue;
+                }
                 JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id));
                 if (((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6)
                     throw new NoSuchObjectException("The ID " + id + " does not represent a mod.");
@@ -490,11 +494,11 @@ public class Profile {
                 JSONObject bestFile = (JSONObject) f.get(0);
                 Map.Entry<Integer, String> entry = mods.get(Integer.parseInt(id));
                 if (((long) bestFile.get("id")) > entry.getKey()) {
-                    System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(entry.getValue()).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(entry.getKey()));
+                    System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(entry.getValue()).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(id));
                     String downloadUrl = ((String) bestFile.get("downloadUrl")).replaceFirst("edge", "media");
-                    if (mods.containsKey(Integer.parseInt(id)))
-                        new File(profileConfig.getParent() + File.separator + "mods" + File.separator + entry.getValue() + "_" + id + "_" + entry.getKey() + ".jar").delete();
                     String loc = Utils.downloadFile(downloadUrl, profileConfig.getParent() + File.separator + "mods", ((String) bestFile.get("fileName")).replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
+                    if (loc == null) continue;
+                    new File(profileConfig.getParent() + File.separator + "mods" + File.separator + entry.getValue() + "_" + id + "_" + entry.getKey() + ".jar").delete();
                     System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Downloaded " + loc));
                 }
             } catch (Exception e) {

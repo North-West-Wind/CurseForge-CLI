@@ -1,4 +1,8 @@
 {
+  "1.2.9": {
+    "title": "Profile \"update\" retains old mods",
+    "description": "Fixed the profile \"update\" command removing old mod even when the new mod download fails."
+  },
   "1.2.8": {
     "title": "Fixed \"update\" still deleting mods"
   },
@@ -31,5 +35,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.2.8"
+  "latest": "1.2.9"
 }
