@@ -39,21 +39,21 @@ public class Config {
     }
 
     private static void createDefaultConfig() {
-        directory = new File("./curseforge-cli");
+        directory = new File(Constants.ABSOLUTE_PATH + File.separator + "curseforge-cli");
         save();
     }
 
     public static void load() {
-        File config = new File("./cf.json");
+        File config = new File(Constants.ABSOLUTE_PATH + File.separator + "cf.json");
         if (!config.exists()) createDefaultConfig();
         JSONParser parser = new JSONParser();
         try {
             JSONObject json = (JSONObject) parser.parse(new FileReader(config));
-            directory = new File((String) json.getOrDefault("directory", "./curseforge-cli"));
-            modpackDir = new File(directory.getPath() + File.separator + "modpack");
-            profileDir = new File(directory.getPath() + File.separator + "profile");
-            exportDir = new File(directory.getPath() + File.separator + "exported");
-            tempDir = new File(directory.getPath() + File.separator + "tmp");
+            directory = new File((String) json.getOrDefault("directory", Constants.ABSOLUTE_PATH + File.separator + "curseforge-cli"));
+            modpackDir = new File(directory.getAbsolutePath() + File.separator + "modpack");
+            profileDir = new File(directory.getAbsolutePath() + File.separator + "profile");
+            exportDir = new File(directory.getAbsolutePath() + File.separator + "exported");
+            tempDir = new File(directory.getAbsolutePath() + File.separator + "tmp");
             acceptParentVersionMod = (boolean) json.getOrDefault("acceptParent", true);
             suppressUpdates = (boolean) json.getOrDefault("suppressUpdates", false);
             retries = (long) json.getOrDefault("retries", 3L);
@@ -79,10 +79,7 @@ public class Config {
             if (!Utils.isInteger(fileId)) continue;
             String[] splitted1 = Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).toArray(String[]::new);
             String id = Utils.getLast(Arrays.asList(splitted1));
-            if (!Utils.isInteger(id)) {
-                id = fileId;
-                fileId = null;
-            }
+            if (!Utils.isInteger(id)) id = fileId;
             String slug = Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).collect(Collectors.joining("_"));
             map.put(Integer.parseInt(id), slug);
         }
@@ -100,7 +97,7 @@ public class Config {
     }
 
     public static Map<Integer, Map.Entry<Integer, String>> loadMods(String profile) {
-        File[] files = new File(profileDir.getPath() + File.separator + profile + File.separator + "mods").listFiles();
+        File[] files = new File(profileDir.getAbsolutePath() + File.separator + profile + File.separator + "mods").listFiles();
         Map<Integer, Map.Entry<Integer, String>> map = new HashMap<>();
         for (File file : files) {
             if (file.isDirectory() || !file.getName().endsWith(".jar")) continue;
@@ -134,7 +131,7 @@ public class Config {
     public static void save() {
         try {
             JSONObject jo = new JSONObject();
-            jo.put("directory", directory.getPath());
+            jo.put("directory", directory.getAbsolutePath());
             jo.put("acceptParent", acceptParentVersionMod);
             jo.put("suppressUpdates", suppressUpdates);
             jo.put("retries", retries);

@@ -68,7 +68,7 @@ public class Profile {
         }
         System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod launcher version: ").reset());
         String modVer = scanner.nextLine();
-        File profile = new File(Config.profileDir.getPath() + File.separator + name.toLowerCase().replaceAll("[^\\w]+", "-"));
+        File profile = new File(Config.profileDir.getAbsolutePath() + File.separator + name.toLowerCase().replaceAll("[^\\w]+", "-"));
         if (profile.exists()) {
             System.out.println(name + " already exists.");
             return;
@@ -80,7 +80,7 @@ public class Profile {
         json.put("modVer", modVer);
         json.put("launcher", launcher);
         try {
-            PrintWriter pw = new PrintWriter(profile.getPath() + File.separator + "profile.json");
+            PrintWriter pw = new PrintWriter(profile.getAbsolutePath() + File.separator + "profile.json");
             pw.write(json.toJSONString());
 
             pw.flush();
@@ -93,7 +93,7 @@ public class Profile {
     }
 
     private static void edit(String profile) {
-        File config = new File(Config.profileDir.getPath() + File.separator + profile + File.separator + "profile.json");
+        File config = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "profile.json");
         if (!config.exists()) {
             System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Cannot find config of profile " + profile));
             return;
@@ -146,7 +146,7 @@ public class Profile {
         json.put("modVer", nModVer);
         json.put("launcher", nLauncher);
         try {
-            PrintWriter pw = new PrintWriter(config.getPath());
+            PrintWriter pw = new PrintWriter(config.getAbsolutePath());
             pw.write(json.toJSONString());
 
             pw.flush();
@@ -186,7 +186,7 @@ public class Profile {
         AtomicInteger failed = new AtomicInteger();
         folders.forEach((s) -> {
             try {
-                FileUtils.deleteDirectory(new File(Config.profileDir.getPath() + File.separator + s));
+                FileUtils.deleteDirectory(new File(Config.profileDir.getAbsolutePath() + File.separator + s));
             } catch (Exception e) {
                 e.printStackTrace();
                 failed.getAndIncrement();
@@ -202,7 +202,7 @@ public class Profile {
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Profile " + profile + " does not exist."));
             return;
         }
-        File profileConfig = new File(Config.profileDir.getPath() + File.separator + profile + File.separator + "profile.json");
+        File profileConfig = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "profile.json");
         if (!profileConfig.exists() || !profileConfig.isFile()) {
             System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Profile config is missing!"));
             return;
@@ -214,7 +214,7 @@ public class Profile {
             e.printStackTrace();
             return;
         }
-        File modsFolder = new File(Config.profileDir.getPath() + File.separator + profile + File.separator + "mods");
+        File modsFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "mods");
         if (!modsFolder.exists() || !modsFolder.isDirectory()) modsFolder.mkdir();
         Map<Integer, Map.Entry<Integer, String>> mods = Config.loadMods(profile);
         for (String id : Arrays.stream(ids).skip(1).toArray(String[]::new)) {
@@ -231,8 +231,8 @@ public class Profile {
                 JSONObject bestFile = (JSONObject) f.get(0);
                 String downloadUrl = (String) bestFile.get("downloadUrl");
                 if (mods.containsKey(Integer.parseInt(id)))
-                    new File(modsFolder.getPath() + File.separator + mods.get(Integer.parseInt(id)).getValue() + "_" + id + "_" + mods.get(Integer.parseInt(id)).getKey() + ".jar").delete();
-                String loc = Utils.downloadFile(downloadUrl, modsFolder.getPath(), ((String) bestFile.get("fileName")).replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
+                    new File(modsFolder.getAbsolutePath() + File.separator + mods.get(Integer.parseInt(id)).getValue() + "_" + id + "_" + mods.get(Integer.parseInt(id)).getKey() + ".jar").delete();
+                String loc = Utils.downloadFile(downloadUrl, modsFolder.getAbsolutePath(), ((String) bestFile.get("fileName")).replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Downloaded " + loc));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -305,7 +305,7 @@ public class Profile {
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Profile " + profile + " does not exist."));
             return;
         }
-        File profileConfig = new File(Config.profileDir.getPath() + File.separator + profile + File.separator + "profile.json");
+        File profileConfig = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "profile.json");
         if (!profileConfig.exists() || !profileConfig.isFile()) {
             System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Profile config is missing!"));
             return;
@@ -317,7 +317,7 @@ public class Profile {
             e.printStackTrace();
             return;
         }
-        File modsFolder = new File(Config.profileDir.getPath() + File.separator + profile + File.separator + "mods");
+        File modsFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "mods");
         File modsCopy = new File(modsFolder.getParent() + File.separator + "mods_copy");
         try {
             FileUtils.copyDirectory(modsFolder, modsCopy);
@@ -333,7 +333,7 @@ public class Profile {
             jo.put("fileID", mod.getValue().getKey());
             jo.put("required", true);
             files.add(jo);
-            new File(modsCopy.getPath() + File.separator + mod.getValue().getValue() + "_" + mod.getKey() + "_" + mod.getValue().getKey() + ".jar").delete();
+            new File(modsCopy.getAbsolutePath() + File.separator + mod.getValue().getValue() + "_" + mod.getKey() + "_" + mod.getValue().getKey() + ".jar").delete();
         }
         System.out.println("What is the version of this export?");
         Scanner scanner = new Scanner(System.in);
@@ -355,9 +355,9 @@ public class Profile {
         minejo.put("modLoaders", loaders);
         mjo.put("minecraft", minejo);
         mjo.put("overrides", "overrides");
-        File manifest = new File(Config.profileDir.getPath() + File.separator + profile + File.separator + "manifest.json");
+        File manifest = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "manifest.json");
         try {
-            PrintWriter pw = new PrintWriter(manifest.getPath());
+            PrintWriter pw = new PrintWriter(manifest.getAbsolutePath());
             pw.write(mjo.toJSONString());
 
             pw.flush();
@@ -369,13 +369,13 @@ public class Profile {
         }
         List<String> overridesDir = new ArrayList<>(), overridesFile = new ArrayList<>();
         for (int ii = 1; ii < args.length; ii++) {
-            String path = Config.profileDir.getPath() + File.separator + profile + File.separator + args[ii];
+            String path = Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + args[ii];
             File f = new File(path);
             if (!f.exists()) continue;
             if (f.isDirectory()) overridesDir.add(path);
             else overridesFile.add(path);
         }
-        File overridesFolder = new File(Config.profileDir.getPath() + File.separator + profile + File.separator + "overrides");
+        File overridesFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "overrides");
         if (overridesFolder.exists() && overridesFolder.isDirectory()) {
             System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Overrides folder already exists. There might be content in it, so it is best to take it away first."));
             return;
@@ -385,7 +385,7 @@ public class Profile {
             for (String dir : overridesDir) FileUtils.copyDirectoryToDirectory(new File(dir), overridesFolder);
             for (String file : overridesFile) FileUtils.copyFileToDirectory(new File(file), overridesFolder);
             if (modsCopy.listFiles().length > 0) {
-                File overrideMods = new File(overridesFolder.getPath() + File.separator + "mods");
+                File overrideMods = new File(overridesFolder.getAbsolutePath() + File.separator + "mods");
                 if (!overrideMods.exists() || !overrideMods.isDirectory()) overrideMods.mkdir();
                 FileUtils.copyDirectory(modsCopy, overrideMods);
             }
@@ -396,7 +396,7 @@ public class Profile {
         }
         String zipName = config.get("name") + "-" + version + ".zip";
         try {
-            FileOutputStream fos = new FileOutputStream(Config.exportDir.getPath() + File.separator + zipName);
+            FileOutputStream fos = new FileOutputStream(Config.exportDir.getAbsolutePath() + File.separator + zipName);
             ZipOutputStream zipOut = new ZipOutputStream(fos);
 
             Utils.zip(overridesFolder, overridesFolder.getName(), zipOut);
@@ -425,7 +425,7 @@ public class Profile {
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Profile " + profile + " does not exist."));
             return;
         }
-        File profileConfig = new File(Config.profileDir.getPath() + File.separator + profile + File.separator + "profile.json");
+        File profileConfig = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "profile.json");
         if (!profileConfig.exists() || !profileConfig.isFile()) {
             System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Profile config is missing!"));
             return;
@@ -525,18 +525,18 @@ public class Profile {
                 if (!zipped.exists()) throw new FileNotFoundException("The file " + path + " does not exist");
                 if (zipped.isFile()) {
                     FileUtils.copyFileToDirectory(zipped, Config.tempDir);
-                    if (!Utils.unzip(Config.tempDir.getPath() + File.separator + zipped.getName()))
+                    if (!Utils.unzip(Config.tempDir.getAbsolutePath() + File.separator + zipped.getName()))
                         throw new FileSystemException("Failed to extract modpack content of " + path);
                 } else FileUtils.copyDirectoryToDirectory(zipped, Config.tempDir);
-                File manifest = new File(Config.tempDir.getPath() + File.separator + "manifest.json");
+                File manifest = new File(Config.tempDir.getAbsolutePath() + File.separator + "manifest.json");
                 if (!manifest.exists() || !manifest.isFile())
                     throw new FileNotFoundException("Modpack is missing manifest. Cannot convert to profile.");
-                Modpack.copyFromOverride(Config.tempDir.getPath(), (String) ((JSONObject) parser.parse(new FileReader(manifest))).get("overrides"));
-                Modpack.downloadMods(Config.tempDir.getPath());
+                Modpack.copyFromOverride(Config.tempDir.getAbsolutePath(), (String) ((JSONObject) parser.parse(new FileReader(manifest))).get("overrides"));
+                Modpack.downloadMods(Config.tempDir.getAbsolutePath());
                 JSONObject json = (JSONObject) parser.parse(new FileReader(manifest));
                 String slug = ((String) json.get("name")).toLowerCase().replaceAll("[^a-z0-9]", "-");
                 if (toCD) {
-                    File current = new File(".");
+                    File current = new File(Constants.ABSOLUTE_PATH);
                     for (File file : Config.tempDir.listFiles()) {
                         if (file.getName().equals(zipped.getName())) continue;
                         if (file.isFile()) FileUtils.moveFileToDirectory(file, current, true);
@@ -546,8 +546,8 @@ public class Profile {
                 } else {
                     FileUtils.moveDirectoryToDirectory(Config.tempDir, Config.profileDir, true);
                     if (!Config.profileDir.exists() || !Config.profileDir.isDirectory()) Config.profileDir.mkdir();
-                    File packFolder = new File(Config.profileDir.getPath() + File.separator + "tmp");
-                    File newFolder = new File(Config.profileDir.getPath() + File.separator + slug);
+                    File packFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + "tmp");
+                    File newFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + slug);
                     if (!packFolder.renameTo(newFolder)) {
                         System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to rename modpack, but we are continuing anyway."));
                         newFolder = packFolder;
@@ -559,7 +559,7 @@ public class Profile {
                     profile.put("mcVer", minecraft.get("version"));
                     profile.put("launcher", launcher[0]);
                     profile.put("modVer", launcher[1]);
-                    PrintWriter pw = new PrintWriter(newFolder.getPath() + File.separator + "profile.json");
+                    PrintWriter pw = new PrintWriter(newFolder.getAbsolutePath() + File.separator + "profile.json");
                     pw.write(profile.toJSONString());
 
                     pw.flush();
@@ -581,7 +581,7 @@ public class Profile {
 
     public static boolean findAndImport() {
         try {
-            File currentDir = new File(".");
+            File currentDir = new File(Constants.ABSOLUTE_PATH);
             return importProf(currentDir.list((dir, name) -> name.endsWith(".zip")), true, true);
         } catch (Exception ignored) {
         }
