@@ -8,6 +8,10 @@ Written in Java. Designed for all platform and portable use.
     - GUI: Open your file manager, right-click the file and get into "Properties", search and check "Executable" (or similar options).
     - CLI: Run `chmod +x <path>`, where "path" is the path to the "curseforge" bash script.
 5. Run `./curseforge` in the terminal you opened to start it.
+6. (Optional) Put the path where you extracted the program to the PATH variable. That way you can run `curseforge` directly from terminal without `cd`-ing to there first.
+
+If you want to use the "curseforge-cli.jar" file directly, follow step 2 and 3 above, and then do the following:
+- Run `java -jar curseforge-cli.jar --args` and put your arguments after `--args`.
 
 ### Commands
 - `help` Display commands of the program.
