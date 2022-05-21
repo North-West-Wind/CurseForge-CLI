@@ -1,4 +1,8 @@
 {
+  "1.2.11": {
+    "title": "Fixed 403 Status Error",
+    "description": "Removed the use of a deprecated API URL."
+  },
   "1.2.10": {
     "title": "Support for running from another directory",
     "description": "This is designed for users who want to put this into their PATH variable. The program will always store configurations at where it is."
@@ -39,5 +43,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.2.10"
+  "latest": "1.2.11"
 }

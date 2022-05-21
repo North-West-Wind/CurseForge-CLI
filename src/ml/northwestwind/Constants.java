@@ -5,8 +5,8 @@ import java.net.URISyntaxException;
 import java.util.function.Supplier;
 
 public class Constants {
-    public static final String CURSEFORGE_API = "https://addons-ecs.forgesvc.net/api/v2/addon/";
-    public static final String VERSION = "1.2.10";
+    public static final String CURSEFORGE_API = "https://northwestwind.ml/api/curseforge/mods/";
+    public static final String VERSION = "1.2.11";
     private static final String OS = System.getProperty("os.name").toLowerCase();
     public static final boolean IS_WINDOWS = (OS.contains("win"));
     public static final boolean IS_MAC = (OS.contains("mac"));

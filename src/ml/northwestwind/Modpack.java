@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -52,7 +53,7 @@ public class Modpack {
         }
         try {
             JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id));
-            if (((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 4471)
+            if (((long) json.get("classId")) != 4471)
                 throw new NoSuchObjectException("The ID " + id + " does not represent a modpack.");
             JSONObject files;
             if (fileId == null) files = (JSONObject) Utils.getLast((JSONArray) json.get("latestFiles"));
@@ -81,7 +82,7 @@ public class Modpack {
                 FileUtils.deleteDirectory(packFolder);
             }
             packFolder.mkdir();
-            String downloadUrl = ((String) files.get("downloadUrl")).replaceFirst("edge", "media");
+            String downloadUrl = ((String) files.get("downloadUrl"));
             String loc = Utils.downloadFile(downloadUrl, packFolder.getAbsolutePath());
             if (loc == null) throw new SyncFailedException("Failed to download modpack " + name);
             boolean success = Utils.unzip(loc);
@@ -233,13 +234,13 @@ public class Modpack {
             JSONObject json = (JSONObject) parser.parse(new FileReader(profileFile));
             JSONObject profiles = (JSONObject) json.get("profiles");
             JSONObject profile = new JSONObject();
-            profile.put("created", LocalDateTime.now(ZoneId.of("UTC")).toString());
+            profile.put("created", LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
             profile.put("gameDir", path);
             if (base64 == null) profile.put("icon", "Furnace_On");
             else profile.put("icon", base64);
             int memory = (int) Math.ceil(Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0 / 1024.0);
             profile.put("javaArgs", String.format("-Xmx%dG -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=32M", memory));
-            profile.put("lastUsed", LocalDateTime.of(LocalDate.MIN, LocalTime.MIN).atZone(ZoneId.of("UTC")).toString());
+            profile.put("lastUsed", "1970-01-01T00:00:00.000Z");
             profile.put("lastVersionId", loader == null ? "latest-release" : loader);
             profile.put("name", name);
             profile.put("type", "custom");
@@ -358,13 +359,13 @@ public class Modpack {
                 }
                 String finalKey = key;
                 JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + finalKey));
-                if (((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 4471)
+                if (((long) json.get("classId")) != 4471)
                     throw new NoSuchObjectException("The ID " + id + " does not represent a modpack.");
                 String name = (String) json.get("name");
                 System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Updating ").a(name).a("...").reset());
                 File packFolder = new File(Config.modpackDir.getAbsolutePath() + File.separator + slug + "_" + key);
                 JSONObject latest = (JSONObject) Utils.getLast((JSONArray) json.get("latestFiles"));
-                String downloadUrl = ((String) latest.get("downloadUrl")).replaceFirst("edge", "media");
+                String downloadUrl = ((String) latest.get("downloadUrl"));
                 String loc = Utils.downloadFile(downloadUrl, packFolder.getAbsolutePath());
                 if (loc == null) throw new SyncFailedException("Failed to download modpack " + name);
                 boolean success = Utils.unzip(loc);

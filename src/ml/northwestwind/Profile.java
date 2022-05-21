@@ -221,10 +221,10 @@ public class Profile {
             try {
                 if (!Utils.isInteger(id)) throw new NoSuchObjectException("Mod ID is invalid: " + id);
                 JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id));
-                if (((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6)
+                if (((long) json.get("classId")) != 6)
                     throw new NoSuchObjectException("The ID " + id + " does not represent a mod.");
                 JSONArray files = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files"));
-                List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersion"), config)).collect(Collectors.toList());
+                List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersions"), config)).collect(Collectors.toList());
                 f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
                 if (f.size() < 1)
                     throw new InputMismatchException("No available file of " + id + " found for this profile.");
@@ -444,10 +444,10 @@ public class Profile {
             for (Map.Entry<Integer, Map.Entry<Integer, String>> entry : mods.entrySet()) {
                 try {
                     JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + entry.getKey()));
-                    if (((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6)
+                    if (((long) json.get("classId")) != 6)
                         throw new NoSuchObjectException("The ID " + entry.getKey() + " does not represent a mod.");
                     JSONArray files = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + entry.getKey() + "/files"));
-                    List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersion"), config)).collect(Collectors.toList());
+                    List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersions"), config)).collect(Collectors.toList());
                     f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
                     if (f.size() < 1) continue;
                     JSONObject fjson = (JSONObject) f.get(0);
@@ -484,10 +484,10 @@ public class Profile {
                     continue;
                 }
                 JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id));
-                if (((long) ((JSONObject) json.get("categorySection")).get("gameCategoryId")) != 6)
+                if (((long) json.get("classId")) != 6)
                     throw new NoSuchObjectException("The ID " + id + " does not represent a mod.");
                 JSONArray files = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files"));
-                List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersion"), config)).collect(Collectors.toList());
+                List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersions"), config)).collect(Collectors.toList());
                 f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
                 if (f.size() < 1)
                     throw new InputMismatchException("No available file of " + id + " found for this profile.");
@@ -495,7 +495,7 @@ public class Profile {
                 Map.Entry<Integer, String> entry = mods.get(Integer.parseInt(id));
                 if (((long) bestFile.get("id")) > entry.getKey()) {
                     System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(entry.getValue()).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(id));
-                    String downloadUrl = ((String) bestFile.get("downloadUrl")).replaceFirst("edge", "media");
+                    String downloadUrl = ((String) bestFile.get("downloadUrl"));
                     String loc = Utils.downloadFile(downloadUrl, profileConfig.getParent() + File.separator + "mods", ((String) bestFile.get("fileName")).replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
                     if (loc == null) continue;
                     new File(profileConfig.getParent() + File.separator + "mods" + File.separator + entry.getValue() + "_" + id + "_" + entry.getKey() + ".jar").delete();
