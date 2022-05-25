@@ -1,4 +1,8 @@
 {
+  "1.2.12": {
+    "title": "Fixed null downloadUrl",
+    "description": "Mod downloader should be more consistent."
+  },
   "1.2.11": {
     "title": "Fixed 403 Status Error",
     "description": "Removed the use of a deprecated API URL."
@@ -43,5 +47,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.2.11"
+  "latest": "1.2.12"
 }

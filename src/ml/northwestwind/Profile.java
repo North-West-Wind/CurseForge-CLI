@@ -230,6 +230,11 @@ public class Profile {
                     throw new InputMismatchException("No available file of " + id + " found for this profile.");
                 JSONObject bestFile = (JSONObject) f.get(0);
                 String downloadUrl = (String) bestFile.get("downloadUrl");
+                if (downloadUrl == null) {
+                    long parsed = (long) bestFile.get("id");
+                    long first = parsed / 1000;
+                    downloadUrl = String.format("https://edge.forgecdn.net/files/%d/%d/%s", first, parsed - first * 1000, bestFile.get("fileName"));
+                }
                 if (mods.containsKey(Integer.parseInt(id)))
                     new File(modsFolder.getAbsolutePath() + File.separator + mods.get(Integer.parseInt(id)).getValue() + "_" + id + "_" + mods.get(Integer.parseInt(id)).getKey() + ".jar").delete();
                 String loc = Utils.downloadFile(downloadUrl, modsFolder.getAbsolutePath(), ((String) bestFile.get("fileName")).replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
@@ -495,7 +500,13 @@ public class Profile {
                 Map.Entry<Integer, String> entry = mods.get(Integer.parseInt(id));
                 if (((long) bestFile.get("id")) > entry.getKey()) {
                     System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(entry.getValue()).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(id));
-                    String downloadUrl = ((String) bestFile.get("downloadUrl"));
+                    String downloadUrl = (String) bestFile.get("downloadUrl");
+                    if (downloadUrl == null) {
+                        long parsed = (long) bestFile.get("id");
+                        long first = parsed / 1000;
+                        downloadUrl = String.format("https://edge.forgecdn.net/files/%d/%d/%s", first, parsed - first * 1000, bestFile.get("fileName"));
+                        System.out.println(downloadUrl);
+                    }
                     String loc = Utils.downloadFile(downloadUrl, profileConfig.getParent() + File.separator + "mods", ((String) bestFile.get("fileName")).replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
                     if (loc == null) continue;
                     new File(profileConfig.getParent() + File.separator + "mods" + File.separator + entry.getValue() + "_" + id + "_" + entry.getKey() + ".jar").delete();

@@ -56,8 +56,10 @@ public class Modpack {
             if (((long) json.get("classId")) != 4471)
                 throw new NoSuchObjectException("The ID " + id + " does not represent a modpack.");
             JSONObject files;
-            if (fileId == null) files = (JSONObject) Utils.getLast((JSONArray) json.get("latestFiles"));
-            else {
+            if (fileId == null) {
+                files = (JSONObject) Utils.getLast((JSONArray) json.get("latestFiles"));
+                fileId = Long.toString((long) files.get("id"));
+            } else {
                 JSONArray filesJsons = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files"));
                 String finalFileId = fileId;
                 Optional<JSONObject> fileJson = (Optional<JSONObject>) filesJsons.stream().filter(j -> ((long) ((JSONObject) j).get("id")) == Long.parseLong(finalFileId)).findFirst();
@@ -82,7 +84,12 @@ public class Modpack {
                 FileUtils.deleteDirectory(packFolder);
             }
             packFolder.mkdir();
-            String downloadUrl = ((String) files.get("downloadUrl"));
+            String downloadUrl = (String) files.get("downloadUrl");
+            if (downloadUrl == null) {
+                int parsed = Integer.parseInt(fileId);
+                int first = parsed / 1000;
+                downloadUrl = String.format("https://edge.forgecdn.net/files/%d/%d/%s", first, parsed - first * 1000, files.get("fileName"));
+            }
             String loc = Utils.downloadFile(downloadUrl, packFolder.getAbsolutePath());
             if (loc == null) throw new SyncFailedException("Failed to download modpack " + name);
             boolean success = Utils.unzip(loc);
@@ -135,7 +142,13 @@ public class Modpack {
                             throw new NoSuchObjectException("Cannot find required file of project " + project);
                         JSONObject j = (JSONObject) f.get();
                         name = (String) j.get("displayName");
-                        String downloaded = Utils.downloadFile((String) j.get("downloadUrl"), folder + File.separator + "mods", ((String) j.get("fileName")).replace(".jar", "_" + project + "_" + file + ".jar"));
+                        String downloadUrl = (String) j.get("downloadUrl");
+                        if (downloadUrl == null) {
+                            long parsed = (long) obj.get("fileID");
+                            long first = parsed / 1000;
+                            downloadUrl = String.format("https://edge.forgecdn.net/files/%d/%d/%s", first, parsed - first * 1000, j.get("fileName"));
+                        }
+                        String downloaded = Utils.downloadFile(downloadUrl, folder + File.separator + "mods", ((String) j.get("fileName")).replace(".jar", "_" + project + "_" + file + ".jar"));
                         if (downloaded == null) throw new SyncFailedException("Failed to download mod " + name);
                         suc++;
                     }
@@ -365,7 +378,12 @@ public class Modpack {
                 System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Updating ").a(name).a("...").reset());
                 File packFolder = new File(Config.modpackDir.getAbsolutePath() + File.separator + slug + "_" + key);
                 JSONObject latest = (JSONObject) Utils.getLast((JSONArray) json.get("latestFiles"));
-                String downloadUrl = ((String) latest.get("downloadUrl"));
+                String downloadUrl = (String) latest.get("downloadUrl");
+                if (downloadUrl == null) {
+                    long parsed = (long) latest.get("id");
+                    long first = parsed / 1000;
+                    downloadUrl = String.format("https://edge.forgecdn.net/files/%d/%d/%s", first, parsed - first * 1000, latest.get("fileName"));
+                }
                 String loc = Utils.downloadFile(downloadUrl, packFolder.getAbsolutePath());
                 if (loc == null) throw new SyncFailedException("Failed to download modpack " + name);
                 boolean success = Utils.unzip(loc);
