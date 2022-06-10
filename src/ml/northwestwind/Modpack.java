@@ -37,73 +37,71 @@ public class Modpack {
         else Utils.invalid();
     }
 
-    private static void install(String[] ids) {
-        String id = ids[0];
-        if (!Utils.isInteger(id)) {
-            System.err.println(id + " is not a valid modpack ID!");
-            return;
-        }
-        String fileId = null;
-        if (ids.length > 1) {
-            fileId = ids[1];
-            if (!Utils.isInteger(fileId)) {
-                System.err.println(fileId + " is not a valid modpack file ID!");
+    private static void install(String[] args) {
+        for (String arg : args) {
+            String[] ids = arg.split("_");
+            String id = ids[0];
+            if (!Utils.isInteger(id)) {
+                System.err.println(id + " is not a valid modpack ID!");
                 return;
             }
-        }
-        try {
-            JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id));
-            if (((long) json.get("classId")) != 4471)
-                throw new NoSuchObjectException("The ID " + id + " does not represent a modpack.");
-            JSONObject files;
-            if (fileId == null) {
-                files = (JSONObject) Utils.getLast((JSONArray) json.get("latestFiles"));
-                fileId = Long.toString((long) files.get("id"));
-            } else {
-                JSONArray filesJsons = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files"));
-                String finalFileId = fileId;
-                Optional<JSONObject> fileJson = (Optional<JSONObject>) filesJsons.stream().filter(j -> ((long) ((JSONObject) j).get("id")) == Long.parseLong(finalFileId)).findFirst();
-                if (!fileJson.isPresent())
-                    throw new NoSuchObjectException("The ID " + fileId + " does not represent a modpack file.");
-                files = fileJson.get();
-            }
-            String slug = (String) json.get("slug");
-            String name = (String) json.get("name");
-            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Installing ").a(name).a("...").reset());
-            File packFolder = new File(Config.modpackDir.getAbsolutePath() + File.separator + slug + "_" + id + (fileId != null ? "_" + fileId : ""));
-            if (packFolder.exists()) {
-                Scanner scanner = new Scanner(System.in);
-                System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Found old folder of ").a(name).a(". If you want to re-install while keeping your files, use \"repair\" instead.").reset());
-                System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Proceed anyway? ").fg(Ansi.Color.RED).a("(This will delete the entire folder!)").reset().a(" [y/n] "));
-                String res = scanner.nextLine();
-                if (!res.equalsIgnoreCase("y")) {
-                    System.out.println("Cancelled modpack installation.");
+            String fileId = null;
+            if (ids.length > 1) {
+                fileId = ids[1];
+                if (!Utils.isInteger(fileId)) {
+                    System.err.println(fileId + " is not a valid modpack file ID!");
                     return;
                 }
-                System.out.println("Deleting old folder...");
-                FileUtils.deleteDirectory(packFolder);
             }
-            packFolder.mkdir();
-            String downloadUrl = (String) files.get("downloadUrl");
-            if (downloadUrl == null) {
-                int parsed = Integer.parseInt(fileId);
-                int first = parsed / 1000;
-                downloadUrl = String.format("https://edge.forgecdn.net/files/%d/%d/%s", first, parsed - first * 1000, files.get("fileName"));
+            try {
+                JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id));
+                if (((long) json.get("classId")) != 4471)
+                    throw new NoSuchObjectException("The ID " + id + " does not represent a modpack.");
+                JSONObject files;
+                if (fileId == null) {
+                    files = (JSONObject) Utils.getLast((JSONArray) json.get("latestFiles"));
+                } else {
+                    String finalFileId = fileId;
+                    files = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files/" + finalFileId));
+                }
+                String slug = (String) json.get("slug");
+                String name = (String) json.get("name");
+                System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Installing ").a(name).a("...").reset());
+                File packFolder = new File(Config.modpackDir.getAbsolutePath() + File.separator + slug + "_" + id + (fileId != null ? "_" + fileId : ""));
+                if (packFolder.exists()) {
+                    Scanner scanner = new Scanner(System.in);
+                    System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Found old folder of ").a(name).a(". If you want to re-install while keeping your files, use \"repair\" instead.").reset());
+                    System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Proceed anyway? ").fg(Ansi.Color.RED).a("(This will delete the entire folder!)").reset().a(" [y/n] "));
+                    String res = scanner.nextLine();
+                    if (!res.equalsIgnoreCase("y")) {
+                        System.out.println("Cancelled modpack installation.");
+                        return;
+                    }
+                    System.out.println("Deleting old folder...");
+                    FileUtils.deleteDirectory(packFolder);
+                }
+                packFolder.mkdir();
+                String downloadUrl = (String) files.get("downloadUrl");
+                if (downloadUrl == null) {
+                    int parsed = fileId != null ? Integer.parseInt(fileId) : (int) (long) files.get("id");
+                    int first = parsed / 1000;
+                    downloadUrl = String.format("https://edge.forgecdn.net/files/%d/%d/%s", first, parsed - first * 1000, files.get("fileName"));
+                }
+                String loc = Utils.downloadFile(downloadUrl, packFolder.getAbsolutePath());
+                if (loc == null) throw new SyncFailedException("Failed to download modpack " + name);
+                boolean success = Utils.unzip(loc);
+                if (!success) throw new FileSystemException("Failed to extract modpack content of " + name);
+                File manifest = new File(packFolder + File.separator + getManifestFile(files));
+                if (!manifest.exists()) throw new FileNotFoundException("Cannot find modpack manifest of " + name);
+                JSONObject manifestJson = (JSONObject) parser.parse(new FileReader(manifest));
+                copyFromOverride(packFolder.getAbsolutePath(), (String) manifestJson.get("overrides"));
+                downloadMods(packFolder.getAbsolutePath());
+                String thumb = downloadThumb(json);
+                genProfile(name, packFolder.getAbsolutePath(), thumb, getModVersion(manifestJson));
+                System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Finished download of " + name).reset());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            String loc = Utils.downloadFile(downloadUrl, packFolder.getAbsolutePath());
-            if (loc == null) throw new SyncFailedException("Failed to download modpack " + name);
-            boolean success = Utils.unzip(loc);
-            if (!success) throw new FileSystemException("Failed to extract modpack content of " + name);
-            File manifest = new File(packFolder + File.separator + getManifestFile(files));
-            if (!manifest.exists()) throw new FileNotFoundException("Cannot find modpack manifest of " + name);
-            JSONObject manifestJson = (JSONObject) parser.parse(new FileReader(manifest));
-            copyFromOverride(packFolder.getAbsolutePath(), (String) manifestJson.get("overrides"));
-            downloadMods(packFolder.getAbsolutePath());
-            String thumb = downloadThumb(json);
-            genProfile(name, packFolder.getAbsolutePath(), thumb, getModVersion(manifestJson));
-            System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Finished download of " + name).reset());
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
@@ -136,11 +134,7 @@ public class Modpack {
                     String file = Long.toString((long) obj.get("fileID"));
                     if (!force && mods.containsKey(project) && mods.get(project).equalsIgnoreCase(file)) ski++;
                     else {
-                        JSONArray files = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + project + "/files"));
-                        Optional f = files.stream().filter(o1 -> Long.toString((long) ((JSONObject) o1).get("id")).equalsIgnoreCase(file)).findFirst();
-                        if (!f.isPresent())
-                            throw new NoSuchObjectException("Cannot find required file of project " + project);
-                        JSONObject j = (JSONObject) f.get();
+                        JSONObject j = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + project + "/files/" + file));
                         name = (String) j.get("displayName");
                         String downloadUrl = (String) j.get("downloadUrl");
                         if (downloadUrl == null) {
@@ -247,7 +241,7 @@ public class Modpack {
             JSONObject json = (JSONObject) parser.parse(new FileReader(profileFile));
             JSONObject profiles = (JSONObject) json.get("profiles");
             JSONObject profile = new JSONObject();
-            profile.put("created", LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
+            profile.put("created", LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE));
             profile.put("gameDir", path);
             if (base64 == null) profile.put("icon", "Furnace_On");
             else profile.put("icon", base64);
@@ -265,13 +259,13 @@ public class Modpack {
 
             pw.flush();
             pw.close();
-            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Created profile for " + name + ".").reset());
-            if (loader == null) {
-                System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(" However, the mod loader is not configured correctly. Please open/restart your Minecraft Launcher to edit it. Installation of mod loader might be needed, and can be downloaded in the following:").reset());
-                System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Forge: ").fg(Ansi.Color.CYAN).a("https://files.minecraftforge.net/").reset());
-                System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Fabric: ").fg(Ansi.Color.CYAN).a("https://fabricmc.net/use/installer/").reset());
-            }
-        } catch (Exception ignored) {
+            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Created installation profile for " + name + ".").reset());
+            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(" However, the mod loader may not be configured correctly, especially for older versions. Please open/restart your Minecraft Launcher to edit it. Installation of mod loader might be needed, and can be downloaded in the following:").reset());
+            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Forge: ").fg(Ansi.Color.CYAN).a("https://files.minecraftforge.net/").reset());
+            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Fabric: ").fg(Ansi.Color.CYAN).a("https://fabricmc.net/use/installer/").reset());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to generate installation profile for " + name + ". Please be reminded to make one yourself.").reset());
         }
     }
 
@@ -450,8 +444,8 @@ public class Modpack {
     public static void printHelp(String prefix) {
         System.out.println(prefix + "modpack: Commands for modpack.");
         System.out.println(prefix + "\tinstall: Install a modpack.");
-        System.out.println(prefix + "\t\targ <ID>: The ID of the modpack.");
-        System.out.println(prefix + "\t\targ [FileID]: The ID of the modpack zip file. Omit to install latest version.");
+        System.out.println(prefix + "\t\targ <ID[_FileID]>: The ID of modpacks.");
+        System.out.println(prefix + "\t\t\t If an argument is in the format of ID_FileID, where FileID is the ID of a specific modpack ZIP, that specific modpack ZIP will be installed.");
         System.out.println(prefix + "\tdelete: Delete a modpack.");
         System.out.println(prefix + "\t\targ <ID|Slug>: The ID or slug of the modpack. Can be multiple IDs or slugs.");
         System.out.println(prefix + "\tupdate: Update a modpack.");

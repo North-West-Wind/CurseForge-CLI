@@ -18,16 +18,16 @@ If you want to use the "curseforge-cli.jar" file directly, follow step 2 and 3 a
 - `config` Configure the program.
   - `directory <path>` Set the working directory of the program.
 - `modpack` Commands for modpack.
-  - `install <ID> [FileID]` Install modpack(s). The ID parameter is the ID of the modpack found on CurseForge. FileID is the ID of the modpack zip file on CurseForge. Omit to install the latest version.
-  - `delete <ID|Slug>` Delete modpack(s). The ID/slug parameter is the ID/slug of the modpack.
+  - `install <ID[_FileID]>` Install modpack(s). The ID parameter is the ID of the modpack found on CurseForge. To install a modpack with a specific version, use the format ID_FileID, where FileID is the ID of the modpack zip file on CurseForge. Omit to install the latest version.
+  - `delete <ID[_FileID] | Slug>` Delete modpack(s). The ID/slug parameter is the ID/slug of the modpack. Specify the FileID to remove a spcific version.
   - `list` List all installed modpacks.
 - `profile` Commands for custom profile.
   - `create` Create a custom profile. You will need to answer some questions.
   - `edit <profile>` Edit a custom profile. Similar to `create`.
   - `delete <name>` Delete a profile. The name parameter is the name of the profile.
-  - `add <profile> <ID>` Add a mod to the profile. ID is the ID of the mod on CurseForge.
+  - `add <profile> <ID[_FileID]>` Add a mod to the profile. ID is the ID of the mod on CurseForge.
   - `remove <profile> <ID>` Remove a mod from the profile. Works similarly to `add`.
-  - `update <profile> [ID]` Update mods of a profile. Omit ID to check for updates.
+  - `update <profile> [all | ID[_FileID]]` Update mods of a profile. Append `all` to update all mods. Omit ID to check for updates. Include FileID to update to a specific version.
   - `export` Export the profile as an uploadable modpack format.
   - `import <path>` Import a downloaded modpack.
 - `mod` Commands for mods.
