@@ -456,8 +456,8 @@ public class Profile {
             return;
         }
         Map<Integer, Map.Entry<Integer, String>> mods = Config.loadMods(profile);
-        if (args.length - 1 < 1 || args[1].equalsIgnoreCase("all")) {
-            boolean doUpdate = args[1].equalsIgnoreCase("all");
+        boolean doUpdate = args.length > 1 && args[1].equalsIgnoreCase("all");
+        if (args.length == 1 || doUpdate) {
             System.out.println(Ansi.ansi().fg(Ansi.Color.CYAN).a("Mods with update available:"));
             Map<Integer, String> updatables = new HashMap<>();
             for (Map.Entry<Integer, Map.Entry<Integer, String>> entry : mods.entrySet()) {
