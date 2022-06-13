@@ -8,6 +8,7 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -49,6 +50,7 @@ public class Utils {
     public static String downloadFile(String fileURL, String saveDir, String name) throws IOException {
         URL url = new URL(fileURL.replace(" ", "%20"));
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+        httpConn.addRequestProperty("User-Agent", "Mozilla/5.0");
         int responseCode = httpConn.getResponseCode();
         String saveFilePath = null;
 
@@ -160,7 +162,7 @@ public class Utils {
 
     public static Object readJsonFromUrl(String url, boolean printError) {
         JSONParser parser = new JSONParser();
-        try (InputStream is = new URL(url).openStream()) {
+        try (InputStream is = readStreamFromUrl(url)) {
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String jsonText = readAll(rd);
             return parser.parse(jsonText);
@@ -168,6 +170,12 @@ public class Utils {
             if (printError) e.printStackTrace();
             return null;
         }
+    }
+
+    private static InputStream readStreamFromUrl(String url) throws IOException {
+        HttpURLConnection httpcon = (HttpURLConnection) new URL(url).openConnection();
+        httpcon.addRequestProperty("User-Agent", "Mozilla/5.0");
+        return httpcon.getInputStream();
     }
 
     public static boolean isMCVersionValid(String ver) {

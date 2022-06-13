@@ -1,10 +1,14 @@
 {
+  "1.3.2": {
+    "title": "Added User-Agent to requests",
+    "description": "This should fix the 403 error some users are receiving."
+  },
   "1.3.1": {
     "title": "Hotfix for profile update error"
   },
   "1.3.0": {
     "title": "Better version control & Adapting to new API",
-    "description": "You can now install modpacks with a modpack ZIP ID"
+    "description": "You can now install modpacks with a modpack ZIP ID."
   },
   "1.2.12": {
     "title": "Fixed null downloadUrl",
@@ -54,5 +58,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.3.1"
+  "latest": "1.3.2"
 }
