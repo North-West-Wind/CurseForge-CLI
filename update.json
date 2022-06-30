@@ -1,4 +1,8 @@
 {
+  "1.3.3": {
+    "title": "Added Charset retry",
+    "description": "This fixes some modpack ZIPs having malformed inputs error."
+  },
   "1.3.2": {
     "title": "Added User-Agent to requests",
     "description": "This should fix the 403 error some users are receiving."

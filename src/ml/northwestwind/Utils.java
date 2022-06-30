@@ -8,13 +8,11 @@ import org.json.simple.parser.JSONParser;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -22,6 +20,7 @@ import java.util.zip.ZipOutputStream;
 public class Utils {
     private static final int BUFFER_SIZE = 4096;
     private static final String UPDATE_URL = "https://raw.githubusercontent.com/North-West-Wind/CurseForge-CLI/main/update.json";
+    private static final Charset[] CHARSETS = { StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1, StandardCharsets.US_ASCII, StandardCharsets.UTF_16, StandardCharsets.UTF_16BE, StandardCharsets.UTF_16LE };
 
     public static void invalid() {
         System.err.println("Invalid usage. Use \"curseforge help\" for command list,");
@@ -100,40 +99,44 @@ public class Utils {
     }
 
     public static boolean unzip(String file) {
-        try {
-            String fileZip = file;
-            String[] splitted = file.split("/");
-            File destDir = new File(Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).collect(Collectors.joining("/")));
-            byte[] buffer = new byte[1024];
-            ZipInputStream zis = new ZipInputStream(new FileInputStream(fileZip));
-            ZipEntry zipEntry = zis.getNextEntry();
-            while (zipEntry != null) {
-                File newFile = newFile(destDir, zipEntry);
-                if (newFile.exists()) {
-                    if (newFile.isDirectory()) FileUtils.cleanDirectory(newFile);
-                    else newFile.delete();
+        for (Charset charset : CHARSETS) {
+            try {
+                File destDir = new File(file).getParentFile();
+                byte[] buffer = new byte[1024];
+
+                FileInputStream fis = new FileInputStream(file);
+                ZipInputStream zis = new ZipInputStream(fis, charset);
+                ZipEntry zipEntry = zis.getNextEntry();
+                while (zipEntry != null) {
+                    File newFile = newFile(destDir, zipEntry);
+                    if (newFile.exists()) {
+                        if (newFile.isDirectory()) FileUtils.cleanDirectory(newFile);
+                        else newFile.delete();
+                    }
+                    if (zipEntry.isDirectory()) {
+                        if (!newFile.isDirectory() && !newFile.mkdirs())
+                            throw new IOException("Failed to create directory " + newFile);
+                    } else {
+                        File parent = newFile.getParentFile();
+                        if (!parent.isDirectory() && !parent.mkdirs())
+                            throw new IOException("Failed to create directory " + parent);
+                        FileOutputStream fos = new FileOutputStream(newFile);
+                        int len;
+                        while ((len = zis.read(buffer)) > 0) fos.write(buffer, 0, len);
+                        fos.close();
+                    }
+                    zipEntry = zis.getNextEntry();
                 }
-                if (zipEntry.isDirectory()) {
-                    if (!newFile.isDirectory() && !newFile.mkdirs())
-                        throw new IOException("Failed to create directory " + newFile);
-                } else {
-                    File parent = newFile.getParentFile();
-                    if (!parent.isDirectory() && !parent.mkdirs())
-                        throw new IOException("Failed to create directory " + parent);
-                    FileOutputStream fos = new FileOutputStream(newFile);
-                    int len;
-                    while ((len = zis.read(buffer)) > 0) fos.write(buffer, 0, len);
-                    fos.close();
-                }
-                zipEntry = zis.getNextEntry();
+                zis.closeEntry();
+                zis.close();
+                fis.close();
+                return true;
+            } catch (Exception e) {
+                System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Charset " + charset.name() + " failed. Trying the next one...").reset());
             }
-            zis.closeEntry();
-            zis.close();
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
         }
+        System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("All charsets failed. Installation stopped.").reset());
+        return false;
     }
 
     public static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException {
