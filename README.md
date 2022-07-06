@@ -50,5 +50,8 @@ You will find modpack/mod name with some numbers after it. That is totally inten
 
 Installing a modpack will also generate a profile. However, the profile doesn't use the correct mod loader. Please install the mod loader yourself as instructed.
 
+## Support
+If you want to support me, please consider becoming [my Patron](https://www.patreon.com/nww).
+
 ## License
 GNU GPLv3
