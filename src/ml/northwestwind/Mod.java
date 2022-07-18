@@ -47,7 +47,7 @@ public class Mod {
             pw.close();
             System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Exported search results to search.txt"));
         } catch (Exception e) {
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
         }
     }
 

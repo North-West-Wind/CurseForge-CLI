@@ -37,7 +37,10 @@ If you want to use the "curseforge-cli.jar" file directly, follow step 2 and 3 a
 You can configure CurseForge CLI by editing `cf.json`. The file should be generated once the JAR file has run once.  
 These are the options you can edit:
 - `directory` The directory where modpacks and profiles are stored. Default: `./curseforge-cli`
-- `acceptParent` Whether mods with only the parent version of a profile is accepted. For example, you can install a 1.18 mod into a 1.18.1 profile. Default: `true`
+- `acceptParent` Whether mods with only the parent version of a profile is accepted or not. For example, you can install a 1.18 mod into a 1.18.1 profile. Default: `true`
+- `suppressUpdates` Whether the update messages should be suppressed or not. Default: `false`
+- `silentExceptions` Whether the exception stack traces should be silenced or not. Default: `false`
+- `retries` The amount of retries when downloading something fails. Default: `3`
 
 ### Other Features
 If you put the JAR file together with a zip of the exported profile, CurseForge CLI will automatically install that profile to the current directory.  

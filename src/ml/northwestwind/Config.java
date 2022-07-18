@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class Config {
     public static File directory, modpackDir, profileDir, exportDir, tempDir;
-    public static boolean acceptParentVersionMod, suppressUpdates;
+    public static boolean acceptParentVersionMod, suppressUpdates, silentExceptions;
     public static long retries;
 
     public static void run(String[] args) {
@@ -56,9 +56,10 @@ public class Config {
             tempDir = new File(directory.getAbsolutePath() + File.separator + "tmp");
             acceptParentVersionMod = (boolean) json.getOrDefault("acceptParent", true);
             suppressUpdates = (boolean) json.getOrDefault("suppressUpdates", false);
+            silentExceptions = (boolean) json.getOrDefault("silentExceptions", false);
             retries = (long) json.getOrDefault("retries", 3L);
         } catch (Exception e) {
-            e.printStackTrace();
+            if (!silentExceptions) e.printStackTrace();
         }
     }
 
@@ -135,6 +136,7 @@ public class Config {
             jo.put("acceptParent", acceptParentVersionMod);
             jo.put("suppressUpdates", suppressUpdates);
             jo.put("retries", retries);
+            jo.put("silentExceptions", silentExceptions);
             PrintWriter pw = new PrintWriter("cf.json");
             pw.write(jo.toJSONString());
 
@@ -143,7 +145,7 @@ public class Config {
 
             if (!directory.exists()) directory.mkdir();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (!silentExceptions) e.printStackTrace();
         }
     }
 }

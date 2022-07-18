@@ -1,4 +1,8 @@
 {
+  "1.3.4": {
+    "title": "Shows Mod Download Results",
+    "description": "Install/Update modpacks now shows which mod has failed to be installed during and after the install/update."
+  },
   "1.3.3": {
     "title": "Added Charset retry",
     "description": "This fixes some modpack ZIPs having malformed inputs error."
@@ -62,5 +66,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.3.3"
+  "latest": "1.3.4"
 }

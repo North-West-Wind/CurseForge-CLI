@@ -89,7 +89,7 @@ public class Profile {
             System.out.println(Ansi.ansi().fg(Ansi.Color.CYAN).a("The slug of the profile is ").a(profile.getName()));
         } catch (Exception e) {
             System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to create profile " + profile));
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
         }
     }
 
@@ -104,7 +104,7 @@ public class Profile {
             json = (JSONObject) parser.parse(new FileReader(config));
         } catch (IOException | ParseException e) {
             System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Cannot read config of profile " + profile));
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
         String name = (String) json.getOrDefault("name", "");
@@ -155,7 +155,7 @@ public class Profile {
             System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Edited profile " + profile));
         } catch (Exception e) {
             System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to edit profile " + profile));
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
         }
     }
 
@@ -167,7 +167,7 @@ public class Profile {
                 if (!profiles.contains(name)) throw new NoSuchObjectException("Cannot find profile with name " + name);
                 folders.add(name);
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
             }
         }
         if (folders.size() < 1) {
@@ -189,7 +189,7 @@ public class Profile {
             try {
                 FileUtils.deleteDirectory(new File(Config.profileDir.getAbsolutePath() + File.separator + s));
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
                 failed.getAndIncrement();
             }
         });
@@ -212,7 +212,7 @@ public class Profile {
         try {
             config = (JSONObject) parser.parse(new FileReader(profileConfig));
         } catch (ParseException | IOException e) {
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
         File modsFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "mods");
@@ -253,7 +253,7 @@ public class Profile {
                 String loc = Utils.downloadFile(downloadUrl, modsFolder.getAbsolutePath(), ((String) bestFile.get("fileName")).replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Downloaded " + loc));
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
             }
         }
         System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Finished all mod downloads."));
@@ -288,7 +288,7 @@ public class Profile {
                 }
                 files.put(name + ".jar", modName);
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
             }
         }
         if (files.size() < 1) {
@@ -310,7 +310,7 @@ public class Profile {
             try {
                 new File(Config.profileDir + File.separator + profile + File.separator + "mods" + File.separator + key).delete();
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
                 failed.getAndIncrement();
             }
         });
@@ -332,7 +332,7 @@ public class Profile {
         try {
             config = (JSONObject) parser.parse(new FileReader(profileConfig));
         } catch (ParseException | IOException e) {
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
         File modsFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "mods");
@@ -340,7 +340,7 @@ public class Profile {
         try {
             FileUtils.copyDirectory(modsFolder, modsCopy);
         } catch (Exception e) {
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
         Map<Integer, Map.Entry<Integer, String>> mods = Config.loadMods(profile);
@@ -382,7 +382,7 @@ public class Profile {
             pw.close();
         } catch (Exception e) {
             System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to create manifest.json."));
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
         List<String> overridesDir = new ArrayList<>(), overridesFile = new ArrayList<>();
@@ -409,7 +409,7 @@ public class Profile {
             }
         } catch (Exception e) {
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to copy files to overrides."));
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
         String zipName = config.get("name") + "-" + version + ".zip";
@@ -423,7 +423,7 @@ public class Profile {
             fos.close();
         } catch (Exception e) {
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to zip everything."));
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
         try {
@@ -432,7 +432,7 @@ public class Profile {
             FileUtils.deleteDirectory(modsCopy);
         } catch (Exception e) {
             System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Failed to clean up, but we can keep running."));
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
         }
         System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Exported profile " + profile + " to " + zipName));
     }
@@ -452,7 +452,7 @@ public class Profile {
         try {
             config = (JSONObject) parser.parse(new FileReader(profileConfig));
         } catch (ParseException | IOException e) {
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
         Map<Integer, Map.Entry<Integer, String>> mods = Config.loadMods(profile);
@@ -488,7 +488,7 @@ public class Profile {
                     }
                 } catch (Exception e) {
                     System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Having trouble with mod " + entry.getKey()));
-                    e.printStackTrace();
+                    if (!Config.silentExceptions) e.printStackTrace();
                 }
             }
             if (!doUpdate) {
@@ -503,7 +503,7 @@ public class Profile {
                     pw.close();
                     System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Exported mods with update available to mod_updates.txt"));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    if (!Config.silentExceptions) e.printStackTrace();
                 }
             }
             return;
@@ -553,16 +553,16 @@ public class Profile {
                     System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Downloaded " + loc));
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
             }
         }
     }
 
     private static void importProf(String[] paths) {
-        importProf(paths, false, false);
+        importProf(paths, false);
     }
 
-    private static boolean importProf(String[] paths, boolean silent, boolean toCD) {
+    private static boolean importProf(String[] paths, boolean toCD) {
         if (toCD && paths.length > 1) return false;
         boolean imported = false;
         for (String path : paths) {
@@ -620,7 +620,7 @@ public class Profile {
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Converted modpack " + slug + " into profile."));
                 imported = true;
             } catch (Exception e) {
-                if (!silent) e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
             }
             try {
                 if (Config.tempDir.exists() && Config.tempDir.isDirectory()) FileUtils.deleteDirectory(Config.tempDir);
@@ -633,7 +633,7 @@ public class Profile {
     public static boolean findAndImport() {
         try {
             File currentDir = new File(Constants.ABSOLUTE_PATH);
-            return importProf(currentDir.list((dir, name) -> name.endsWith(".zip")), true, true);
+            return importProf(currentDir.list((dir, name) -> name.endsWith(".zip")), true);
         } catch (Exception ignored) {
         }
         return false;

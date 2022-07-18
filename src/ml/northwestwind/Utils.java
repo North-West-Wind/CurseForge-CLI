@@ -160,17 +160,13 @@ public class Utils {
     }
 
     public static Object readJsonFromUrl(String url) {
-        return readJsonFromUrl(url, true);
-    }
-
-    public static Object readJsonFromUrl(String url, boolean printError) {
         JSONParser parser = new JSONParser();
         try (InputStream is = readStreamFromUrl(url)) {
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String jsonText = readAll(rd);
             return parser.parse(jsonText);
         } catch (Exception e) {
-            if (printError) e.printStackTrace();
+            if (Config.silentExceptions) e.printStackTrace();
             return null;
         }
     }
@@ -248,7 +244,7 @@ public class Utils {
     }
 
     public static void readUpdate() {
-        Object received = readJsonFromUrl(UPDATE_URL, false);
+        Object received = readJsonFromUrl(UPDATE_URL);
         if (received == null) return;
         JSONObject json = (JSONObject) received;
         String latest = (String) json.get("latest");

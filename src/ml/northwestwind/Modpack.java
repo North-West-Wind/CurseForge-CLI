@@ -9,10 +9,7 @@ import org.json.simple.parser.JSONParser;
 import java.io.*;
 import java.nio.file.FileSystemException;
 import java.rmi.NoSuchObjectException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -100,7 +97,7 @@ public class Modpack {
                 genProfile(name, packFolder.getAbsolutePath(), thumb, getModVersion(manifestJson));
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Finished download of " + name).reset());
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
             }
         }
     }
@@ -125,13 +122,14 @@ public class Modpack {
             File manifest = new File(folder + File.separator + "manifest.json");
             JSONObject json = (JSONObject) parser.parse(new FileReader(manifest));
             JSONArray array = (JSONArray) json.get("files");
-            int i = 0, suc = 0, fai = 0, ski = 0;
+            int i = 0, suc = 0, fai = 0, ski = 0, lastSuc = 0, lastFai = 0, lastSki = 0;
+            Map<String, String> failed = new HashMap<>();
             for (Object o : array) {
                 String name = "";
+                JSONObject obj = (JSONObject) o;
+                String project = Long.toString((long) obj.get("projectID"));
+                String file = Long.toString((long) obj.get("fileID"));
                 try {
-                    JSONObject obj = (JSONObject) o;
-                    String project = Long.toString((long) obj.get("projectID"));
-                    String file = Long.toString((long) obj.get("fileID"));
                     if (!force && mods.containsKey(project) && mods.get(project).equalsIgnoreCase(file)) ski++;
                     else {
                         JSONObject j = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + project + "/files/" + file));
@@ -148,14 +146,25 @@ public class Modpack {
                     }
                 } catch (Exception e) {
                     fai++;
-                    e.printStackTrace();
+                    failed.put(project, file);
+                    if (!Config.silentExceptions) e.printStackTrace();
                 } finally {
-                    System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a(String.format("[%d/%d] [S/F/S: %d/%d/%d] Downloaded %s", ++i, array.size(), suc, fai, ski, name)));
+                    if (suc > lastSuc) System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a(String.format("[%d/%d] [S/F/S: %d/%d/%d] Downloaded %s", ++i, array.size(), suc, fai, ski, name)));
+                    else if (fai > lastFai) System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a(String.format("[%d/%d] [S/F/S: %d/%d/%d] Failed to download %s", ++i, array.size(), suc, fai, ski, name)));
+                    else if (ski > lastSki) System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(String.format("[%d/%d] [S/F/S: %d/%d/%d] Skipped %s", ++i, array.size(), suc, fai, ski, name)));
+                    lastSuc = suc;
+                    lastFai = fai;
+                    lastSki = ski;
                 }
             }
             System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(String.format("Iterated through %d projects. %d success, %d failed, %d skipped", i, suc, fai, ski)));
+            if (fai > 0) {
+                System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Mods that failed to update:").reset());
+                for (Map.Entry<String, String> entry : failed.entrySet())
+                    System.out.println(Ansi.ansi().a("Project: ").fg(Ansi.Color.YELLOW).a(entry.getKey()).reset().a(", File: ").fg(Ansi.Color.CYAN).a(entry.getValue()).reset());
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
         }
     }
 
@@ -264,7 +273,7 @@ public class Modpack {
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Forge: ").fg(Ansi.Color.CYAN).a("https://files.minecraftforge.net/").reset());
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Fabric: ").fg(Ansi.Color.CYAN).a("https://fabricmc.net/use/installer/").reset());
         } catch (Exception e) {
-            e.printStackTrace();
+            if (!Config.silentExceptions) e.printStackTrace();
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to generate installation profile for " + name + ". Please be reminded to make one yourself.").reset());
         }
     }
@@ -291,7 +300,7 @@ public class Modpack {
                 }
                 folders.put(name, packName);
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
             }
         }
         if (folders.size() < 1) {
@@ -313,7 +322,7 @@ public class Modpack {
             try {
                 FileUtils.deleteDirectory(new File(Config.modpackDir.getAbsolutePath() + File.separator + key));
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
                 failed.getAndIncrement();
             }
         });
@@ -389,7 +398,7 @@ public class Modpack {
                 downloadMods(packFolder.getAbsolutePath(), force);
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Finished download of " + name).reset());
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
             }
         }
     }
@@ -436,7 +445,7 @@ public class Modpack {
                 manifest.delete();
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Converted modpack " + slug + " into profile."));
             } catch (Exception e) {
-                e.printStackTrace();
+                if (!Config.silentExceptions) e.printStackTrace();
             }
         }
     }
