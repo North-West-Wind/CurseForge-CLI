@@ -97,38 +97,6 @@ public class Config {
         return list;
     }
 
-    public static Map<Integer, Map.Entry<Integer, String>> loadMods(String profile) {
-        File[] files = new File(profileDir.getAbsolutePath() + File.separator + profile + File.separator + "mods").listFiles();
-        Map<Integer, Map.Entry<Integer, String>> map = new HashMap<>();
-        for (File file : files) {
-            if (file.isDirectory() || !file.getName().endsWith(".jar")) continue;
-            String[] splitted = file.getName().replace(".jar", "").split("_");
-            String fileId = Utils.getLast(Arrays.asList(splitted));
-            if (!Utils.isInteger(fileId)) continue;
-            String[] splitted1 = Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).toArray(String[]::new);
-            String id = Utils.getLast(Arrays.asList(splitted1));
-            if (!Utils.isInteger(id)) continue;
-            String name = String.join("_", Arrays.copyOf(splitted1, splitted1.length - 1));
-            map.put(Integer.parseInt(id), new Map.Entry<Integer, String>() {
-                @Override
-                public Integer getKey() {
-                    return Integer.parseInt(fileId);
-                }
-
-                @Override
-                public String getValue() {
-                    return name;
-                }
-
-                @Override
-                public String setValue(String value) {
-                    return null;
-                }
-            });
-        }
-        return map;
-    }
-
     public static void save() {
         try {
             JSONObject jo = new JSONObject();

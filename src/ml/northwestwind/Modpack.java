@@ -118,12 +118,14 @@ public class Modpack {
         try {
             File modsFolder = new File(folder + File.separator + "mods");
             if (!modsFolder.exists() || !modsFolder.isDirectory()) modsFolder.mkdir();
-            Map<String, String> mods = getAllMods(modsFolder.getAbsolutePath());
+            Map<String, String> mods = Utils.getAllMods(modsFolder.getAbsolutePath());
+            Map<String, String> modNames = Utils.getAllModNames(modsFolder.getAbsolutePath());
             File manifest = new File(folder + File.separator + "manifest.json");
             JSONObject json = (JSONObject) parser.parse(new FileReader(manifest));
             JSONArray array = (JSONArray) json.get("files");
             int i = 0, suc = 0, fai = 0, ski = 0, lastSuc = 0, lastFai = 0, lastSki = 0;
             Map<String, String> failed = new HashMap<>();
+            Set<String> exists = new HashSet<>();
             for (Object o : array) {
                 String name = "";
                 JSONObject obj = (JSONObject) o;
@@ -149,14 +151,22 @@ public class Modpack {
                     failed.put(project, file);
                     if (!Config.silentExceptions) e.printStackTrace();
                 } finally {
-                    if (suc > lastSuc) System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a(String.format("[%d/%d] [S/F/S: %d/%d/%d] Downloaded %s", ++i, array.size(), suc, fai, ski, name)));
-                    else if (fai > lastFai) System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a(String.format("[%d/%d] [S/F/S: %d/%d/%d] Failed to download %s", ++i, array.size(), suc, fai, ski, name)));
+                    exists.add(project);
+                    if (suc > lastSuc) {
+                        System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a(String.format("[%d/%d] [S/F/S: %d/%d/%d] Downloaded %s", ++i, array.size(), suc, fai, ski, name)));
+                        File oldFile = new File(modsFolder.getAbsolutePath() + File.separator + modNames.get(project));
+                        if (oldFile.exists() && oldFile.isFile()) oldFile.delete();
+                    } else if (fai > lastFai) System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a(String.format("[%d/%d] [S/F/S: %d/%d/%d] Failed to download %s", ++i, array.size(), suc, fai, ski, name)));
                     else if (ski > lastSki) System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(String.format("[%d/%d] [S/F/S: %d/%d/%d] Skipped %s", ++i, array.size(), suc, fai, ski, name)));
                     lastSuc = suc;
                     lastFai = fai;
                     lastSki = ski;
                 }
             }
+            mods.keySet().stream().filter(key -> !exists.contains(key)).forEach(key -> {
+                File oldFile = new File(modsFolder.getAbsolutePath() + File.separator + modNames.get(key));
+                if (oldFile.exists() && oldFile.isFile()) oldFile.delete();
+            });
             System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(String.format("Iterated through %d projects. %d success, %d failed, %d skipped", i, suc, fai, ski)));
             if (fai > 0) {
                 System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Mods that failed to update:").reset());
@@ -166,23 +176,6 @@ public class Modpack {
         } catch (Exception e) {
             if (!Config.silentExceptions) e.printStackTrace();
         }
-    }
-
-    private static Map<String, String> getAllMods(String modFolder) {
-        Map<String, String> map = new HashMap<>();
-        File modsFolder = new File(modFolder);
-        if (!modsFolder.exists() || !modsFolder.isDirectory()) return map;
-        for (String filename : modsFolder.list()) {
-            if (!filename.endsWith(".jar")) continue;
-            String[] splitted = filename.replace(".jar", "").split("_");
-            String fileId = Utils.getLast(Arrays.asList(splitted));
-            if (!Utils.isInteger(fileId)) continue;
-            String[] splitted1 = Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).toArray(String[]::new);
-            String id = Utils.getLast(Arrays.asList(splitted1));
-            if (!Utils.isInteger(id)) continue;
-            map.put(id, fileId);
-        }
-        return map;
     }
 
     // Pass in latestFiles' last element

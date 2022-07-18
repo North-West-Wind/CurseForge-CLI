@@ -11,6 +11,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -277,6 +279,40 @@ public class Utils {
             }
         }
         return obj;
+    }
+
+    public static Map<String, String> getAllMods(String modFolder) {
+        Map<String, String> map = new HashMap<>();
+        File modsFolder = new File(modFolder);
+        if (!modsFolder.exists() || !modsFolder.isDirectory()) return map;
+        for (String filename : modsFolder.list()) {
+            if (!filename.endsWith(".jar")) continue;
+            String[] splitted = filename.replace(".jar", "").split("_");
+            String fileId = Utils.getLast(Arrays.asList(splitted));
+            if (!Utils.isInteger(fileId)) continue;
+            String[] splitted1 = Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).toArray(String[]::new);
+            String id = Utils.getLast(Arrays.asList(splitted1));
+            if (!Utils.isInteger(id)) continue;
+            map.put(id, fileId);
+        }
+        return map;
+    }
+
+    public static Map<String, String> getAllModNames(String modFolder) {
+        Map<String, String> map = new HashMap<>();
+        File modsFolder = new File(modFolder);
+        if (!modsFolder.exists() || !modsFolder.isDirectory()) return map;
+        for (String filename : modsFolder.list()) {
+            if (!filename.endsWith(".jar")) continue;
+            String[] splitted = filename.replace(".jar", "").split("_");
+            String fileId = Utils.getLast(Arrays.asList(splitted));
+            if (!Utils.isInteger(fileId)) continue;
+            String[] splitted1 = Arrays.stream(Arrays.copyOf(splitted, splitted.length - 1)).toArray(String[]::new);
+            String id = Utils.getLast(Arrays.asList(splitted1));
+            if (!Utils.isInteger(id)) continue;
+            map.put(id, filename);
+        }
+        return map;
     }
 
     @FunctionalInterface

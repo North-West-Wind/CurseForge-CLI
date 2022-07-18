@@ -217,7 +217,8 @@ public class Profile {
         }
         File modsFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "mods");
         if (!modsFolder.exists() || !modsFolder.isDirectory()) modsFolder.mkdir();
-        Map<Integer, Map.Entry<Integer, String>> mods = Config.loadMods(profile);
+        Map<String, String> mods = Utils.getAllMods(modsFolder.getAbsolutePath());
+        Map<String, String> modNames = Utils.getAllModNames(modsFolder.getAbsolutePath());
         for (String arg : Arrays.stream(ids).skip(1).toArray(String[]::new)) {
             try {
                 String[] modIds = arg.split("_");
@@ -248,8 +249,10 @@ public class Profile {
                     long first = parsed / 1000;
                     downloadUrl = String.format("https://edge.forgecdn.net/files/%d/%d/%s", first, parsed - first * 1000, bestFile.get("fileName"));
                 }
-                if (mods.containsKey(Integer.parseInt(id)))
-                    new File(modsFolder.getAbsolutePath() + File.separator + mods.get(Integer.parseInt(id)).getValue() + "_" + id + "_" + mods.get(Integer.parseInt(id)).getKey() + ".jar").delete();
+                if (mods.containsKey(id)) {
+                    File oldFile = new File(modsFolder.getAbsolutePath() + File.separator + modNames.get(id));
+                    if (oldFile.exists() && oldFile.isFile()) oldFile.delete();
+                }
                 String loc = Utils.downloadFile(downloadUrl, modsFolder.getAbsolutePath(), ((String) bestFile.get("fileName")).replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
                 System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Downloaded " + loc));
             } catch (Exception e) {
@@ -266,27 +269,27 @@ public class Profile {
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Profile " + profile + " does not exist."));
             return;
         }
-        Map<Integer, Map.Entry<Integer, String>> mods = Config.loadMods(profile);
-        Map<String, String> files = new HashMap<>();
+        File modsFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "mods");
+        Map<String, String> mods = Utils.getAllMods(modsFolder.getAbsolutePath());
+        Map<String, String> modNames = Utils.getAllModNames(modsFolder.getAbsolutePath());
+        Set<String> files = new HashSet<>();
         for (String id : Arrays.stream(ids).skip(1).toArray(String[]::new)) {
-            String name = null, modName = null;
+            String filename = null;
             try {
                 if (Utils.isInteger(id)) {
-                    Map.Entry<Integer, String> entry = mods.getOrDefault(Integer.parseInt(id), new Utils.NullEntry<>());
-                    String file = entry.getValue();
-                    if (file == null) throw new NoSuchObjectException("Cannot find mod with ID " + id);
-                    name = file + "_" + id + "_" + entry.getKey();
-                    modName = file;
+                    if (!mods.containsKey(id)) throw new NoSuchObjectException("Cannot find mod with ID " + id);
+                    filename = modNames.get(id);
                 } else {
-                    for (Map.Entry<Integer, Map.Entry<Integer, String>> entry : mods.entrySet())
-                        if (entry.getValue().getValue().equalsIgnoreCase(id)) {
-                            name = entry.getValue().getValue() + "_" + entry.getKey() + "_" + entry.getValue().getKey();
-                            modName = entry.getValue().getValue();
+                    for (String key : mods.keySet()) {
+                        String[] split = key.split("_");
+                        if (String.join("", Arrays.copyOf(split, split.length - 2)).equalsIgnoreCase(id)) {
+                            filename = modNames.get(key);
                             break;
                         }
-                    if (name == null) throw new NoSuchObjectException("Cannot find mod with name " + id);
+                    }
+                    if (filename == null) throw new NoSuchObjectException("Cannot find mod with name " + id);
                 }
-                files.put(name + ".jar", modName);
+                files.add(filename);
             } catch (Exception e) {
                 if (!Config.silentExceptions) e.printStackTrace();
             }
@@ -296,7 +299,7 @@ public class Profile {
             return;
         }
         System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Mods we are going to remove:").reset());
-        files.forEach((key, value) -> System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(value).reset()));
+        files.forEach(file -> System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(file).reset()));
         System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Are you sure you want to remove these mods? [y/n]").reset());
         Scanner scanner = new Scanner(System.in);
         String res = scanner.nextLine();
@@ -306,9 +309,10 @@ public class Profile {
         }
         System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Removing " + files.size() + " mods...").reset());
         AtomicInteger failed = new AtomicInteger();
-        files.forEach((key, value) -> {
+        files.forEach(file -> {
             try {
-                new File(Config.profileDir + File.separator + profile + File.separator + "mods" + File.separator + key).delete();
+                File oldFile = new File(Config.profileDir + File.separator + profile + File.separator + "mods" + File.separator + file);
+                if (oldFile.exists() && oldFile.isFile()) oldFile.delete();
             } catch (Exception e) {
                 if (!Config.silentExceptions) e.printStackTrace();
                 failed.getAndIncrement();
@@ -343,15 +347,17 @@ public class Profile {
             if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
-        Map<Integer, Map.Entry<Integer, String>> mods = Config.loadMods(profile);
+        Map<String, String> mods = Utils.getAllMods(modsCopy.getAbsolutePath());
+        Map<String, String> modName = Utils.getAllModNames(modsCopy.getAbsolutePath());
         JSONArray files = new JSONArray();
-        for (Map.Entry<Integer, Map.Entry<Integer, String>> mod : mods.entrySet()) {
+        for (Map.Entry<String, String> mod : mods.entrySet()) {
             JSONObject jo = new JSONObject();
             jo.put("projectID", mod.getKey());
-            jo.put("fileID", mod.getValue().getKey());
+            jo.put("fileID", mod.getValue());
             jo.put("required", true);
             files.add(jo);
-            new File(modsCopy.getAbsolutePath() + File.separator + mod.getValue().getValue() + "_" + mod.getKey() + "_" + mod.getValue().getKey() + ".jar").delete();
+            File oldFile = new File(modsCopy.getAbsolutePath() + File.separator + modName.get(mod.getKey()));
+            if (oldFile.exists() && oldFile.isFile()) oldFile.delete();
         }
         System.out.println("What is the version of this export?");
         Scanner scanner = new Scanner(System.in);
@@ -455,12 +461,14 @@ public class Profile {
             if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
-        Map<Integer, Map.Entry<Integer, String>> mods = Config.loadMods(profile);
+        File modsFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "mods");
+        Map<String, String> mods = Utils.getAllMods(modsFolder.getAbsolutePath());
+        Map<String, String> modNames = Utils.getAllModNames(modsFolder.getAbsolutePath());
         boolean doUpdate = args.length > 1 && args[1].equalsIgnoreCase("all");
         if (args.length == 1 || doUpdate) {
             System.out.println(Ansi.ansi().fg(Ansi.Color.CYAN).a("Mods with update available:"));
-            Map<Integer, String> updatables = new HashMap<>();
-            for (Map.Entry<Integer, Map.Entry<Integer, String>> entry : mods.entrySet()) {
+            Map<String, String> updatables = new HashMap<>();
+            for (Map.Entry<String, String> entry : mods.entrySet()) {
                 try {
                     JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + entry.getKey()));
                     if (((long) json.get("classId")) != 6)
@@ -470,8 +478,8 @@ public class Profile {
                     f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
                     if (f.size() < 1) continue;
                     JSONObject fjson = (JSONObject) f.get(0);
-                    if (((long) fjson.get("id")) > entry.getValue().getKey()) {
-                        System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(entry.getValue().getValue()).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(entry.getKey()));
+                    if (((long) fjson.get("id")) > Long.parseLong(entry.getValue())) {
+                        System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(modNames.get(entry.getKey())).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(entry.getKey()));
                         if (doUpdate) {
                             String downloadUrl = (String) fjson.get("downloadUrl");
                             if (downloadUrl == null) {
@@ -482,9 +490,10 @@ public class Profile {
                             }
                             String loc = Utils.downloadFile(downloadUrl, profileConfig.getParent() + File.separator + "mods", ((String) fjson.get("fileName")).replace(".jar", "_" + entry.getKey() + "_" + fjson.get("id") + ".jar"));
                             if (loc == null) continue;
-                            new File(profileConfig.getParent() + File.separator + "mods" + File.separator + entry.getValue() + "_" + entry.getKey() + "_" + entry.getKey() + ".jar").delete();
+                            File oldFile = new File(modsFolder.getAbsolutePath() + File.separator + modNames.get(entry.getKey()));
+                            if (oldFile.exists() && oldFile.isFile()) oldFile.delete();
                             System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Downloaded " + loc));
-                        } else updatables.put(entry.getKey(), entry.getValue().getValue());
+                        } else updatables.put(entry.getKey(), modNames.get(entry.getKey()));
                     }
                 } catch (Exception e) {
                     System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Having trouble with mod " + entry.getKey()));
@@ -494,7 +503,7 @@ public class Profile {
             if (!doUpdate) {
                 try {
                     PrintWriter pw = new PrintWriter(profileConfig.getParent() + File.separator + "mod_updates.txt");
-                    for (Map.Entry<Integer, String> entry : updatables.entrySet())
+                    for (Map.Entry<String, String> entry : updatables.entrySet())
                         pw.println(entry.getValue() + " = " + entry.getKey());
                     pw.println();
                     pw.println("You can update these mods of a profile with the following command: ");
@@ -518,7 +527,7 @@ public class Profile {
                     fileId = ids[1];
                     if (!Utils.isInteger(fileId)) throw new NoSuchObjectException("Mod file ID is invalid: " + id);
                 }
-                if (!mods.containsKey(Integer.parseInt(id))) {
+                if (!mods.containsKey(id)) {
                     System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Cannot find mod with ID " + id + " installed. Skipping updating this mod..."));
                     continue;
                 }
@@ -537,9 +546,8 @@ public class Profile {
                     String finalFileId = fileId;
                     bestFile = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files/" + finalFileId));
                 }
-                Map.Entry<Integer, String> entry = mods.get(Integer.parseInt(id));
-                if (((long) bestFile.get("id")) > entry.getKey() || fileId != null) {
-                    System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(entry.getValue()).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(id));
+                if (((long) bestFile.get("id")) > Long.parseLong(mods.get(id)) || fileId != null) {
+                    System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(modNames.get(id)).reset().a(" | ").fg(Ansi.Color.MAGENTA).a(id));
                     String downloadUrl = (String) bestFile.get("downloadUrl");
                     if (downloadUrl == null) {
                         long parsed = (long) bestFile.get("id");
@@ -549,7 +557,8 @@ public class Profile {
                     }
                     String loc = Utils.downloadFile(downloadUrl, profileConfig.getParent() + File.separator + "mods", ((String) bestFile.get("fileName")).replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
                     if (loc == null) continue;
-                    new File(profileConfig.getParent() + File.separator + "mods" + File.separator + entry.getValue() + "_" + id + "_" + entry.getKey() + ".jar").delete();
+                    File oldFile = new File(modsFolder.getAbsolutePath() + File.separator + modNames.get(id));
+                    if (oldFile.exists() && oldFile.isFile()) oldFile.delete();
                     System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Downloaded " + loc));
                 }
             } catch (Exception e) {

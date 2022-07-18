@@ -1,4 +1,8 @@
 {
+  "1.3.5": {
+    "title": "Properly delete old mods",
+    "description": "Fixed old mods not being deleted after updating."
+  },
   "1.3.4": {
     "title": "Shows Mod Download Results",
     "description": "Install/Update modpacks now shows which mod has failed to be installed during and after the install/update."
