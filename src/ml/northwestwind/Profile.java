@@ -327,7 +327,8 @@ public class Profile {
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Profile " + profile + " does not exist."));
             return;
         }
-        File profileConfig = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "profile.json");
+        File profFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile);
+        File profileConfig = new File(profFolder.getAbsolutePath() + File.separator + "profile.json");
         if (!profileConfig.exists() || !profileConfig.isFile()) {
             System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Profile config is missing!"));
             return;
@@ -339,10 +340,11 @@ public class Profile {
             if (!Config.silentExceptions) e.printStackTrace();
             return;
         }
-        File modsFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "mods");
-        File modsCopy = new File(modsFolder.getParent() + File.separator + "mods_copy");
+        File modsFolder = new File(profFolder.getAbsolutePath() + File.separator + "mods");
+        if (!Config.tempDir.exists()) Config.tempDir.mkdir();
+        File modsCopy = new File(Config.tempDir.getAbsolutePath() + File.separator + "mods");
         try {
-            FileUtils.copyDirectory(modsFolder, modsCopy);
+            FileUtils.copyDirectoryToDirectory(modsFolder, Config.tempDir);
         } catch (Exception e) {
             if (!Config.silentExceptions) e.printStackTrace();
             return;
@@ -352,8 +354,8 @@ public class Profile {
         JSONArray files = new JSONArray();
         for (Map.Entry<String, String> mod : mods.entrySet()) {
             JSONObject jo = new JSONObject();
-            jo.put("projectID", mod.getKey());
-            jo.put("fileID", mod.getValue());
+            jo.put("projectID", Long.parseLong(mod.getKey()));
+            jo.put("fileID", Long.parseLong(mod.getValue()));
             jo.put("required", true);
             files.add(jo);
             File oldFile = new File(modsCopy.getAbsolutePath() + File.separator + modName.get(mod.getKey()));
@@ -379,7 +381,7 @@ public class Profile {
         minejo.put("modLoaders", loaders);
         mjo.put("minecraft", minejo);
         mjo.put("overrides", "overrides");
-        File manifest = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "manifest.json");
+        File manifest = new File(profFolder.getAbsolutePath() + File.separator + "manifest.json");
         try {
             PrintWriter pw = new PrintWriter(manifest.getAbsolutePath());
             pw.write(mjo.toJSONString());
@@ -393,21 +395,26 @@ public class Profile {
         }
         List<String> overridesDir = new ArrayList<>(), overridesFile = new ArrayList<>();
         for (int ii = 1; ii < args.length; ii++) {
-            String path = Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + args[ii];
+            String path = profFolder.getAbsolutePath() + File.separator + args[ii];
             File f = new File(path);
             if (!f.exists()) continue;
-            if (f.isDirectory()) overridesDir.add(path);
-            else overridesFile.add(path);
+            if (f.isDirectory()) overridesDir.add(args[ii]);
+            else overridesFile.add(args[ii]);
         }
-        File overridesFolder = new File(Config.profileDir.getAbsolutePath() + File.separator + profile + File.separator + "overrides");
-        if (overridesFolder.exists() && overridesFolder.isDirectory()) {
-            System.err.println(Ansi.ansi().fg(Ansi.Color.RED).a("Overrides folder already exists. There might be content in it, so it is best to take it away first."));
-            return;
-        }
+        File overridesFolder = new File(Config.tempDir.getAbsolutePath() + File.separator + "overrides");
         overridesFolder.mkdir();
         try {
-            for (String dir : overridesDir) FileUtils.copyDirectoryToDirectory(new File(dir), overridesFolder);
-            for (String file : overridesFile) FileUtils.copyFileToDirectory(new File(file), overridesFolder);
+            for (String dir : overridesDir) {
+                File directory = new File(overridesFolder.getAbsolutePath() + File.separator + dir);
+                directory.mkdirs();
+                FileUtils.copyDirectory(new File(profFolder.getAbsolutePath() + File.separator + dir), directory);
+            }
+            for (String file : overridesFile) {
+                File file1 = new File(overridesFolder.getAbsolutePath() + File.separator + file);
+                File parent = file1.getParentFile();
+                parent.mkdirs();
+                FileUtils.copyFileToDirectory(new File(profFolder.getAbsolutePath() + File.separator + file), parent);
+            }
             if (modsCopy.listFiles().length > 0) {
                 File overrideMods = new File(overridesFolder.getAbsolutePath() + File.separator + "mods");
                 if (!overrideMods.exists() || !overrideMods.isDirectory()) overrideMods.mkdir();
