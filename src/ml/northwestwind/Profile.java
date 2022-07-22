@@ -381,7 +381,7 @@ public class Profile {
         minejo.put("modLoaders", loaders);
         mjo.put("minecraft", minejo);
         mjo.put("overrides", "overrides");
-        File manifest = new File(profFolder.getAbsolutePath() + File.separator + "manifest.json");
+        File manifest = new File(Config.tempDir.getAbsolutePath() + File.separator + "manifest.json");
         try {
             PrintWriter pw = new PrintWriter(manifest.getAbsolutePath());
             pw.write(mjo.toJSONString());
@@ -440,9 +440,7 @@ public class Profile {
             return;
         }
         try {
-            manifest.delete();
-            FileUtils.deleteDirectory(overridesFolder);
-            FileUtils.deleteDirectory(modsCopy);
+            FileUtils.deleteDirectory(Config.tempDir);
         } catch (Exception e) {
             System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Failed to clean up, but we can keep running."));
             if (!Config.silentExceptions) e.printStackTrace();
