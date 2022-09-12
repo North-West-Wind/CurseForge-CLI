@@ -2,7 +2,8 @@
 Written in Java. Designed for all platform and portable use.  
 Note that this is not a launcher. It is just a modpack manager. Game launching still requires Minecraft launcher.
 #### Some mod searching tips
-Use [this website](https://superstormer.github.io/cf-search/) instead of CurseForge. It is way easier to search with it.
+Use [this website](https://superstormer.github.io/cf-search/) instead of CurseForge. It is way easier to search with it.  
+Remember to enable "Show Project ID" on the left of the site, so you can easily copy the ID.
 ## Usage
 1. Download the "curseforge.zip" at the [release page](https://github.com/North-West-Wind/CurseForge-CLI/releases/latest).
 2. Extract it to your desire location.
