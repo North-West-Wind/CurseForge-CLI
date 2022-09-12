@@ -212,13 +212,13 @@ public class Modpack {
     }
 
     private static String downloadThumb(JSONObject json) {
-        if (!(json.get("attachments") instanceof JSONArray) || !(((JSONArray) json.get("attachments")).get(0) instanceof JSONObject))
+        if (!(json.get("logo") instanceof JSONObject))
             return null;
-        JSONObject attachment = (JSONObject) ((JSONArray) json.get("attachments")).get(0);
-        if (!attachment.containsKey("url")) return null;
+        JSONObject logo = (JSONObject) json.get("logo");
+        if (!logo.containsKey("thumbnailUrl")) return null;
         try {
             if (!Config.tempDir.exists()) Config.tempDir.mkdir();
-            return Utils.downloadFile((String) attachment.get("url"), Config.tempDir.getAbsolutePath(), "thumbnail.png");
+            return Utils.downloadFile((String) logo.get("thumbnailUrl"), Config.tempDir.getAbsolutePath(), "thumbnail.png");
         } catch (Exception ignored) {
         }
         return null;
@@ -243,13 +243,14 @@ public class Modpack {
             JSONObject json = (JSONObject) parser.parse(new FileReader(profileFile));
             JSONObject profiles = (JSONObject) json.get("profiles");
             JSONObject profile = new JSONObject();
-            profile.put("created", LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+            String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+            profile.put("created", date);
             profile.put("gameDir", path);
             if (base64 == null) profile.put("icon", "Furnace_On");
             else profile.put("icon", base64);
             int memory = (int) Math.ceil(Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0 / 1024.0);
             profile.put("javaArgs", String.format("-Xmx%dG -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=32M", memory));
-            profile.put("lastUsed", "1970-01-01T00:00:00.000Z");
+            profile.put("lastUsed", date);
             profile.put("lastVersionId", loader == null ? "latest-release" : loader);
             profile.put("name", name);
             profile.put("type", "custom");

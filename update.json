@@ -1,4 +1,7 @@
 {
+  "1.3.8": {
+    "title": "Fixed generated profiles not being able to be edited"
+  },
   "1.3.7": {
     "title": "Profile export use Long for manifest"
   },
@@ -77,5 +80,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.3.7"
+  "latest": "1.3.8"
 }
