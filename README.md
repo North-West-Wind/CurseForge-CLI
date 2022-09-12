@@ -1,5 +1,6 @@
 # CurseForge CLI
-Written in Java. Designed for all platform and portable use.
+Written in Java. Designed for all platform and portable use.  
+Note that this is not a launcher. It is just a modpack manager. Game launching still requires Minecraft launcher.
 #### Some mod searching tips
 Use [this website](https://superstormer.github.io/cf-search/) instead of CurseForge. It is way easier to search with it.
 ## Usage
