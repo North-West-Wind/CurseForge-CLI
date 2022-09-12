@@ -1,5 +1,7 @@
 # CurseForge CLI
 Written in Java. Designed for all platform and portable use.
+#### Some mod searching tips
+Use [this website](https://superstormer.github.io/cf-search/) instead of CurseForge. It is way easier to search with it.
 ## Usage
 1. Download the "curseforge.zip" at the [release page](https://github.com/North-West-Wind/CurseForge-CLI/releases/latest).
 2. Extract it to your desire location.
