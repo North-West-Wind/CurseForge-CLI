@@ -197,7 +197,7 @@ public class Modpack {
                     String version = (String) minecraft.get("version");
                     String id = (String) ((JSONObject) optional.get()).get("id");
                     String[] splitted = id.split("-");
-                    String loader = splitted[0];
+                    String loader = splitted[0].toLowerCase();
                     String modVer = Arrays.stream(splitted).skip(1).collect(Collectors.joining("-"));
                     List<String> versions = Arrays.stream(new File(Utils.getMinecraftPath() + File.separator + "versions").listFiles()).map(File::getName).collect(Collectors.toList());
                     Optional<String> found = versions.stream().filter(name -> name.contains(loader) && name.contains(modVer) && name.contains(version)).findFirst();
@@ -208,7 +208,7 @@ public class Modpack {
                     else if (loader.equalsIgnoreCase("fabric")) System.out.println((Ansi.ansi().a("https://fabricmc.net/use/installer/")).reset());
                     else if (loader.equalsIgnoreCase("quilt")) System.out.println(Ansi.ansi().a("https://quiltmc.org/en/install/").reset());
                     if (Utils.readYesNo()) {
-                        versions = Arrays.stream(new File(Utils.getMinecraftPath() + File.separator + "versions").listFiles()).map(File::getName).collect(Collectors.toList());
+                        versions = Arrays.stream(new File(Utils.getMinecraftPath() + File.separator + "versions").listFiles()).map(f -> f.getName().toLowerCase()).collect(Collectors.toList());
                         found = versions.stream().filter(name -> name.contains(loader) && name.contains(modVer) && name.contains(version)).findFirst();
                         if (found.isPresent()) return found.get();
                         System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("We still couldn't find the mod launcher version required! The installation will continue anyway. You may have to change the profile settings after this."));

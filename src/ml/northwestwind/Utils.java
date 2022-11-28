@@ -220,7 +220,6 @@ public class Utils {
         String requiredVer = (String) config.get("mcVer");
         String launcher = (String) config.get("launcher");
         boolean launcherMatch = false, versionMatch = false;
-        // Assume it is ok if no launcher is specified by the mod file
         int trueCount = 0;
         for (String s : LAUNCHERS)
             if (versions.contains(s)) {
@@ -230,7 +229,10 @@ public class Utils {
                 }
                 trueCount++;
             }
+        // Assume it is ok if no launcher is specified by the mod file
         if (trueCount == 0) launcherMatch = true;
+        // Special relationship of fabric and quilt
+        if (!launcherMatch && launcher.equalsIgnoreCase("quilt") && versions.contains("fabric")) launcherMatch = true;
         if (!versions.contains(requiredVer)) {
             if (Config.acceptParentVersionMod && versions.contains(parentVersion(requiredVer))) versionMatch = true;
             else if (!versions.contains(parentVersion(requiredVer)) && versions.stream().noneMatch(ver -> isMCVersionValid((String) ver))) versionMatch = true;

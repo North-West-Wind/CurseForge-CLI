@@ -57,13 +57,13 @@ public class Profile {
                 System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("The version is invalid. Minecraft version: ").reset());
             }
         }
-        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod launcher [forge/fabric]: ").reset());
+        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod launcher [forge/fabric/quilt]: ").reset());
         String launcher = null;
         while (launcher == null) {
             launcher = scanner.nextLine().toLowerCase();
-            if (!launcher.equalsIgnoreCase("forge") && !launcher.equalsIgnoreCase("fabric")) {
+            if (!launcher.equalsIgnoreCase("forge") && !launcher.equalsIgnoreCase("fabric") && !launcher.equalsIgnoreCase("quilt")) {
                 launcher = null;
-                System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("The launcher is invalid. Mod launcher [forge/fabric]: ").reset().a("\r"));
+                System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("The launcher is invalid. Mod launcher [forge/fabric/quilt]: ").reset().a("\r"));
             }
         }
         System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod launcher version: ").reset());
