@@ -1,4 +1,7 @@
 {
+  "1.4.0": {
+    "title": "Quilt support"
+  },
   "1.3.8": {
     "title": "Fixed generated profiles not being able to be edited"
   },
@@ -80,5 +83,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.3.8"
+  "latest": "1.3.9"
 }

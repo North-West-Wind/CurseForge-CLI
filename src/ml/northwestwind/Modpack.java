@@ -66,11 +66,9 @@ public class Modpack {
                 System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Installing ").a(name).a("...").reset());
                 File packFolder = new File(Config.modpackDir.getAbsolutePath() + File.separator + slug + "_" + id + (fileId != null ? "_" + fileId : ""));
                 if (packFolder.exists()) {
-                    Scanner scanner = new Scanner(System.in);
                     System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Found old folder of ").a(name).a(". If you want to re-install while keeping your files, use \"repair\" instead.").reset());
                     System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Proceed anyway? ").fg(Ansi.Color.RED).a("(This will delete the entire folder!)").reset().a(" [y/n] "));
-                    String res = scanner.nextLine();
-                    if (!res.equalsIgnoreCase("y")) {
+                    if (!Utils.readYesNo()) {
                         System.out.println("Cancelled modpack installation.");
                         return;
                     }
@@ -201,8 +199,23 @@ public class Modpack {
                     String[] splitted = id.split("-");
                     String loader = splitted[0];
                     String modVer = Arrays.stream(splitted).skip(1).collect(Collectors.joining("-"));
+                    List<String> versions = Arrays.stream(new File(Utils.getMinecraftPath() + File.separator + "versions").listFiles()).map(File::getName).collect(Collectors.toList());
+                    Optional<String> found = versions.stream().filter(name -> name.contains(loader) && name.contains(modVer) && name.contains(version)).findFirst();
+                    if (found.isPresent()) return found.get();
+                    System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("We couldn't find the mod launcher version required for your modpack!"));
+                    System.out.println(Ansi.ansi().a("Please download the required mod launcher version from the link below. Enter y after you have that installed, or enter n to skip it for now [y/n]"));
+                    if (loader.equalsIgnoreCase("forge")) System.out.println(Ansi.ansi().a("https://files.minecraftforge.net/net/minecraftforge/forge/").reset());
+                    else if (loader.equalsIgnoreCase("fabric")) System.out.println((Ansi.ansi().a("https://fabricmc.net/use/installer/")).reset());
+                    else if (loader.equalsIgnoreCase("quilt")) System.out.println(Ansi.ansi().a("https://quiltmc.org/en/install/").reset());
+                    if (Utils.readYesNo()) {
+                        versions = Arrays.stream(new File(Utils.getMinecraftPath() + File.separator + "versions").listFiles()).map(File::getName).collect(Collectors.toList());
+                        found = versions.stream().filter(name -> name.contains(loader) && name.contains(modVer) && name.contains(version)).findFirst();
+                        if (found.isPresent()) return found.get();
+                        System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("We still couldn't find the mod launcher version required! The installation will continue anyway. You may have to change the profile settings after this."));
+                    }
                     if (loader.equalsIgnoreCase("forge")) id = version + "-forge-" + modVer;
                     else if (loader.equalsIgnoreCase("fabric")) id = "fabric-loader-" + modVer + "-" + version;
+                    else if (loader.equalsIgnoreCase("quilt")) id = "quilt-loader-" + modVer + "-" + version;
                     else id = null;
                     return id;
                 }
@@ -262,10 +275,8 @@ public class Modpack {
 
             pw.flush();
             pw.close();
-            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Created installation profile for " + name + ".").reset());
-            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(" However, the mod loader may not be configured correctly, especially for older versions. Please open/restart your Minecraft Launcher to edit it. Installation of mod loader might be needed, and can be downloaded in the following:").reset());
-            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Forge: ").fg(Ansi.Color.CYAN).a("https://files.minecraftforge.net/").reset());
-            System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Fabric: ").fg(Ansi.Color.CYAN).a("https://fabricmc.net/use/installer/").reset());
+            System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Created installation profile for " + name + ".").reset());
+            System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("If you received the message about installing the mod launcher previously, please do so."));
         } catch (Exception e) {
             if (!Config.silentExceptions) e.printStackTrace();
             System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Failed to generate installation profile for " + name + ". Please be reminded to make one yourself.").reset());
@@ -304,10 +315,8 @@ public class Modpack {
         System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Modpacks we are going to delete:").reset());
         folders.forEach((key, value) -> System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(value).reset()));
         System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Are you sure you want to delete these modpacks? [y/n]").reset());
-        Scanner scanner = new Scanner(System.in);
-        String res = scanner.nextLine();
-        if (!res.equalsIgnoreCase("y")) {
-            System.out.println("Cancelled modpack deletion.");
+        if (!Utils.readYesNo()) {
+            System.out.println("Cancelled modpack installation.");
             return;
         }
         System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Deleting " + folders.size() + " modpacks...").reset());

@@ -11,10 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -23,6 +20,7 @@ public class Utils {
     private static final int BUFFER_SIZE = 4096;
     private static final String UPDATE_URL = "https://raw.githubusercontent.com/North-West-Wind/CurseForge-CLI/main/update.json";
     private static final Charset[] CHARSETS = { StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1, StandardCharsets.US_ASCII, StandardCharsets.UTF_16, StandardCharsets.UTF_16BE, StandardCharsets.UTF_16LE };
+    private static final String[] LAUNCHERS = { "forge", "fabric", "quilt" /*, "rift" idk how rift works*/ };
 
     public static void invalid() {
         System.err.println("Invalid usage. Use \"curseforge help\" for command list,");
@@ -218,19 +216,21 @@ public class Utils {
         fis.close();
     }
 
-    public static String getOppositeLauncher(String launcher) {
-        if (launcher.equalsIgnoreCase("forge")) return "Fabric";
-        if (launcher.equalsIgnoreCase("fabric")) return "Forge";
-        return null;
-    }
-
     public static boolean checkVersion(JSONArray versions, JSONObject config) {
         String requiredVer = (String) config.get("mcVer");
         String launcher = (String) config.get("launcher");
-        String oppoLauncher = getOppositeLauncher(launcher);
         boolean launcherMatch = false, versionMatch = false;
-        if (oppoLauncher == null || !versions.contains(oppoLauncher) || (versions.contains(oppoLauncher) && versions.contains(launcher)))
-            launcherMatch = true;
+        // Assume it is ok if no launcher is specified by the mod file
+        int trueCount = 0;
+        for (String s : LAUNCHERS)
+            if (versions.contains(s)) {
+                if (s.equalsIgnoreCase(launcher)) {
+                    launcherMatch = true;
+                    break;
+                }
+                trueCount++;
+            }
+        if (trueCount == 0) launcherMatch = true;
         if (!versions.contains(requiredVer)) {
             if (Config.acceptParentVersionMod && versions.contains(parentVersion(requiredVer))) versionMatch = true;
             else if (!versions.contains(parentVersion(requiredVer)) && versions.stream().noneMatch(ver -> isMCVersionValid((String) ver))) versionMatch = true;
@@ -313,6 +313,12 @@ public class Utils {
             map.put(id, filename);
         }
         return map;
+    }
+
+    public static boolean readYesNo() {
+        Scanner scanner = new Scanner(System.in);
+        String res = scanner.nextLine();
+        return res.equalsIgnoreCase("y");
     }
 
     @FunctionalInterface

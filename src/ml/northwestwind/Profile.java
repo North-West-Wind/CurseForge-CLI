@@ -177,9 +177,7 @@ public class Profile {
         System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Profiles we are going to delete:").reset());
         folders.forEach((s) -> System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(s).reset()));
         System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Are you sure you want to delete these profiles? [y/n]").reset());
-        Scanner scanner = new Scanner(System.in);
-        String res = scanner.nextLine();
-        if (!res.equalsIgnoreCase("y")) {
+        if (!Utils.readYesNo()) {
             System.out.println("Cancelled profile deletion.");
             return;
         }
@@ -301,9 +299,7 @@ public class Profile {
         System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Mods we are going to remove:").reset());
         files.forEach(file -> System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a(file).reset()));
         System.out.println(Ansi.ansi().fg(Ansi.Color.RED).a("Are you sure you want to remove these mods? [y/n]").reset());
-        Scanner scanner = new Scanner(System.in);
-        String res = scanner.nextLine();
-        if (!res.equalsIgnoreCase("y")) {
+        if (!Utils.readYesNo()) {
             System.out.println("Cancelled mod removal.");
             return;
         }
