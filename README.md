@@ -57,6 +57,28 @@ You will find modpack/mod name with some numbers after it. That is totally inten
 
 Installing a modpack will also generate a profile. However, the profile doesn't use the correct mod loader. Please install the mod loader yourself as instructed.
 
+## Compiling
+To compile the program yourself, some libraries are needed:
+- [Apache Commons IO](https://commons.apache.org/proper/commons-io/)
+- [jansi](https://github.com/fusesource/jansi)
+- [JSON Simple](https://code.google.com/archive/p/json-simple)
+
+Download them and put them somewhere.
+
+This program is compiled with IntelliJ, so I don't know how to compile it outside of IntelliJ.  
+Anyway, follow the steps:
+1. Download the repository by `git clone` or downloading as ZIP and extract it. 
+2. Launch IntelliJ IDEA if you haven't.
+3. Open the directory where the files are extracted into.
+4. In the top bar, go to File->Project Structure.
+5. On the left side, go to Global Libraries.
+6. Click the + symbol and choose Java.
+7. In the file chooser, choose the Java libraries you downloaded.
+8. Click OK on everything.
+9. In the top bar, go to Build->Build Artifacts.
+10. In the little window, choose Build.
+11. The `.jar` file should be built inside `out/artifacts`.
+
 ## Support
 If you want to support me, please consider becoming [my Patron](https://www.patreon.com/nww).
 

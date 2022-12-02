@@ -199,18 +199,28 @@ public class Modpack {
                     String[] splitted = id.split("-");
                     String loader = splitted[0].toLowerCase();
                     String modVer = Arrays.stream(splitted).skip(1).collect(Collectors.joining("-"));
-                    List<String> versions = Arrays.stream(new File(Utils.getMinecraftPath() + File.separator + "versions").listFiles()).map(File::getName).collect(Collectors.toList());
-                    Optional<String> found = versions.stream().filter(name -> name.contains(loader) && name.contains(modVer) && name.contains(version)).findFirst();
-                    if (found.isPresent()) return found.get();
+                    File versionsDir = new File(Utils.getMinecraftPath() + File.separator + "versions");
+                    if (versionsDir.exists()) {
+                        System.out.println(Ansi.ansi().fg(Ansi.Color.MAGENTA).a("Looking into versions directory: ").a(versionsDir.getAbsolutePath()).reset());
+                        String[] versionNames = versionsDir.list();
+                        if (versionNames != null) {
+                            Optional<String> found = Arrays.stream(versionNames).filter(name -> name.contains(loader) && name.contains(modVer) && name.contains(version)).findFirst();
+                            if (found.isPresent()) return found.get();
+                        }
+                    }
                     System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("We couldn't find the mod launcher version required for your modpack!"));
                     System.out.println(Ansi.ansi().a("Please download the required mod launcher version from the link below. Enter y after you have that installed, or enter n to skip it for now [y/n]"));
                     if (loader.equalsIgnoreCase("forge")) System.out.println(Ansi.ansi().a("https://files.minecraftforge.net/net/minecraftforge/forge/").reset());
                     else if (loader.equalsIgnoreCase("fabric")) System.out.println((Ansi.ansi().a("https://fabricmc.net/use/installer/")).reset());
                     else if (loader.equalsIgnoreCase("quilt")) System.out.println(Ansi.ansi().a("https://quiltmc.org/en/install/").reset());
                     if (Utils.readYesNo()) {
-                        versions = Arrays.stream(new File(Utils.getMinecraftPath() + File.separator + "versions").listFiles()).map(f -> f.getName().toLowerCase()).collect(Collectors.toList());
-                        found = versions.stream().filter(name -> name.contains(loader) && name.contains(modVer) && name.contains(version)).findFirst();
-                        if (found.isPresent()) return found.get();
+                        if (versionsDir.exists()) {
+                            String[] versionNames = versionsDir.list();
+                            if (versionNames != null) {
+                                Optional<String> found = Arrays.stream(versionNames).filter(name -> name.contains(loader) && name.contains(modVer) && name.contains(version)).findFirst();
+                                if (found.isPresent()) return found.get();
+                            }
+                        }
                         System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("We still couldn't find the mod launcher version required! The installation will continue anyway. You may have to change the profile settings after this."));
                     }
                     if (loader.equalsIgnoreCase("forge")) id = version + "-forge-" + modVer;

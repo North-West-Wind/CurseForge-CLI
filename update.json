@@ -1,4 +1,7 @@
 {
+  "1.4.1": {
+    "title": "Prevent crashing when no versions directory is found"
+  },
   "1.4.0": {
     "title": "Quilt support"
   },
@@ -83,5 +86,5 @@
   "1.2.0": {
     "title": "Update Checker & Profile Generator"
   },
-  "latest": "1.4.0"
+  "latest": "1.4.1"
 }
