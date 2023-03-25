@@ -59,9 +59,9 @@ Installing a modpack will also generate a profile. However, the profile doesn't 
 
 ## Compiling
 To compile the program yourself, some libraries are needed:
-- [Apache Commons IO](https://commons.apache.org/proper/commons-io/)
-- [jansi](https://github.com/fusesource/jansi)
-- [JSON Simple](https://code.google.com/archive/p/json-simple)
+- [Apache Commons IO](https://commons.apache.org/proper/commons-io/download_io.cgi)
+- [jansi](https://fusesource.github.io/jansi/download.html)
+- [JSON Simple](https://code.google.com/archive/p/json-simple/downloads)
 
 Download them and put them somewhere.
 
