@@ -65,8 +65,7 @@ To compile the program yourself, some libraries are needed:
 
 Download them and put them somewhere.
 
-This program is compiled with IntelliJ, so I don't know how to compile it outside of IntelliJ.  
-Anyway, follow the steps:
+This program is compiled with IntelliJ, here are the steps to follow if you're using it: 
 1. Download the repository by `git clone` or downloading as ZIP and extract it. 
 2. Launch IntelliJ IDEA if you haven't.
 3. Open the directory where the files are extracted into.
@@ -78,6 +77,16 @@ Anyway, follow the steps:
 9. In the top bar, go to Build->Build Artifacts.
 10. In the little window, choose Build.
 11. The `.jar` file should be built inside `out/artifacts`.
+
+Steps to follow if you're using VSCode: 
+1. Open VSCode, make sure you have the `Extension Pack for Java` installed.
+2. Download the repository by going on the left panel->Source Control->Clone Repository and paste the git clone link.
+3. Create a new folder in the root directory and call it lib.
+4. Download and extract all the necessary libraries, then put the jar files in the lib directory.
+5. Press ctrl+shift+p and search for `Tasks:Configure Default Build Task`, select buildArtifact.
+6. Copy and substitute this: `"targetPath": "${workspaceFolder}/out/artifacts/curseforge-cli.jar"`.
+7. Press ctrl+shift+b OR ctrl+shift+p and search for `Tasks:Run Build Task` to build.
+8. The `.jar` file should be built inside `out/artifacts`.
 
 ## Support
 If you want to support me, please consider becoming [my Patron](https://www.patreon.com/nww).
