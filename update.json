@@ -1,4 +1,7 @@
 {
+  "1.5.0": {
+    "title": "Automated mod dependencies installation & Fixed launcher checking for profile add"
+  },
   "1.4.1": {
     "title": "Prevent crashing when no versions directory is found"
   },

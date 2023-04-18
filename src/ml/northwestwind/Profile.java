@@ -194,6 +194,67 @@ public class Profile {
         System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a(String.format("%d success, %d failed", folders.size() - failed.get(), failed.get())).reset());
     }
 
+    private static void downloadMod(String arg, JSONObject config, File modsFolder, Map<String, String> mods, Map<String, String> modNames) {
+        try {
+            String[] modIds = arg.split("_");
+            String id = modIds[0], fileId = null;
+            if (modIds.length > 1) {
+                fileId = modIds[1];
+                if (!Utils.isInteger(fileId)) throw new NoSuchObjectException("Mod file ID is invalid: " + fileId);
+            }
+            if (!Utils.isInteger(id)) throw new NoSuchObjectException("Mod ID is invalid: " + id);
+            JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id));
+            if (((long) json.get("classId")) != 6)
+                throw new NoSuchObjectException("The ID " + id + " does not represent a mod.");
+            JSONObject bestFile;
+            if (fileId == null) {
+                JSONArray files = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files"));
+                List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersions"), config)).collect(Collectors.toList());
+                f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
+                if (f.size() < 1)
+                    throw new InputMismatchException("No available file of " + id + " found for this profile.");
+                bestFile = (JSONObject) f.get(0);
+            } else {
+                String finalFileId = fileId;
+                bestFile = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files/" + finalFileId));
+            }
+            String fileName = (String) bestFile.get("fileName");
+            JSONArray dependencies = (JSONArray) bestFile.get("dependencies");
+            if (dependencies.size() > 0) {
+                for (Object dep : dependencies) {
+                    JSONObject dependency = (JSONObject) dep;
+                    long modId = (long) dependency.get("modId");
+                    long relation = (long) dependency.get("relationType");
+                    if (relation == 2) {
+                        if (Config.disableOptional) continue;
+                        if (!Config.alwaysInstallOptional) {
+                            System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod ").a(fileName).a(" has optional dependency ").a(Utils.getModSlug(Long.toString(modId))).a(". Do you want to install it? [y/n] "));
+                            if (!Utils.readYesNo()) continue;
+                        }
+                        downloadMod(Long.toString(modId), config, modsFolder, mods, modNames);
+                    } else if (relation == 3) {
+                        System.out.print(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Mod ").a(fileName).a(" has optional dependency ").a(Utils.getModSlug(Long.toString(modId))).a(". Installing..."));
+                        downloadMod(Long.toString(modId), config, modsFolder, mods, modNames);
+                    }
+                }
+            }
+            String downloadUrl = (String) bestFile.get("downloadUrl");
+            if (downloadUrl == null) {
+                long parsed = (long) bestFile.get("id");
+                long first = parsed / 1000;
+                downloadUrl = String.format("https://edge.forgecdn.net/files/%d/%d/%s", first, parsed - first * 1000, fileName);
+            }
+            if (mods.containsKey(id)) {
+                File oldFile = new File(modsFolder.getAbsolutePath() + File.separator + modNames.get(id));
+                if (oldFile.exists() && oldFile.isFile()) oldFile.delete();
+            }
+            String loc = Utils.downloadFile(downloadUrl, modsFolder.getAbsolutePath(), fileName.replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
+            System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Downloaded " + loc));
+        } catch (Exception e) {
+            if (!Config.silentExceptions) e.printStackTrace();
+        }
+    }
+
     private static void add(String[] ids) {
         String profile = ids[0];
         List<String> profiles = Config.loadProfiles();
@@ -217,46 +278,7 @@ public class Profile {
         if (!modsFolder.exists() || !modsFolder.isDirectory()) modsFolder.mkdir();
         Map<String, String> mods = Utils.getAllMods(modsFolder.getAbsolutePath());
         Map<String, String> modNames = Utils.getAllModNames(modsFolder.getAbsolutePath());
-        for (String arg : Arrays.stream(ids).skip(1).toArray(String[]::new)) {
-            try {
-                String[] modIds = arg.split("_");
-                String id = modIds[0], fileId = null;
-                if (modIds.length > 1) {
-                    fileId = modIds[1];
-                    if (!Utils.isInteger(fileId)) throw new NoSuchObjectException("Mod file ID is invalid: " + fileId);
-                }
-                if (!Utils.isInteger(id)) throw new NoSuchObjectException("Mod ID is invalid: " + id);
-                JSONObject json = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id));
-                if (((long) json.get("classId")) != 6)
-                    throw new NoSuchObjectException("The ID " + id + " does not represent a mod.");
-                JSONObject bestFile;
-                if (fileId == null) {
-                    JSONArray files = Utils.runRetry(() -> (JSONArray) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files"));
-                    List f = (List) files.stream().filter(o -> Utils.checkVersion((JSONArray) ((JSONObject) o).get("gameVersions"), config)).collect(Collectors.toList());
-                    f.sort((a, b) -> (int) ((long) ((JSONObject) b).get("id") - (long) ((JSONObject) a).get("id")));
-                    if (f.size() < 1)
-                        throw new InputMismatchException("No available file of " + id + " found for this profile.");
-                    bestFile = (JSONObject) f.get(0);
-                } else {
-                    String finalFileId = fileId;
-                    bestFile = Utils.runRetry(() -> (JSONObject) Utils.readJsonFromUrl(Constants.CURSEFORGE_API + id + "/files/" + finalFileId));
-                }
-                String downloadUrl = (String) bestFile.get("downloadUrl");
-                if (downloadUrl == null) {
-                    long parsed = (long) bestFile.get("id");
-                    long first = parsed / 1000;
-                    downloadUrl = String.format("https://edge.forgecdn.net/files/%d/%d/%s", first, parsed - first * 1000, bestFile.get("fileName"));
-                }
-                if (mods.containsKey(id)) {
-                    File oldFile = new File(modsFolder.getAbsolutePath() + File.separator + modNames.get(id));
-                    if (oldFile.exists() && oldFile.isFile()) oldFile.delete();
-                }
-                String loc = Utils.downloadFile(downloadUrl, modsFolder.getAbsolutePath(), ((String) bestFile.get("fileName")).replace(".jar", "_" + id + "_" + bestFile.get("id") + ".jar"));
-                System.out.println(Ansi.ansi().fg(Ansi.Color.GREEN).a("Downloaded " + loc));
-            } catch (Exception e) {
-                if (!Config.silentExceptions) e.printStackTrace();
-            }
-        }
+        for (String arg : Arrays.stream(ids).skip(1).toArray(String[]::new)) downloadMod(arg, config, modsFolder, mods, modNames);
         System.out.println(Ansi.ansi().fg(Ansi.Color.YELLOW).a("Finished all mod downloads."));
     }
 

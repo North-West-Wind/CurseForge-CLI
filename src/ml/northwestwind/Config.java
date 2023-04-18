@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class Config {
     public static File directory, modpackDir, profileDir, exportDir, tempDir;
-    public static boolean acceptParentVersionMod, suppressUpdates, silentExceptions;
+    public static boolean acceptParentVersionMod, suppressUpdates, silentExceptions, disableOptional, alwaysInstallOptional;
     public static long retries;
 
     public static void run(String[] args) {
@@ -57,6 +57,8 @@ public class Config {
             acceptParentVersionMod = (boolean) json.getOrDefault("acceptParent", true);
             suppressUpdates = (boolean) json.getOrDefault("suppressUpdates", false);
             silentExceptions = (boolean) json.getOrDefault("silentExceptions", false);
+            disableOptional = (boolean) json.getOrDefault("disableOptional", false);
+            alwaysInstallOptional = (boolean) json.getOrDefault("alwaysInstallOptional", false);
             retries = (long) json.getOrDefault("retries", 3L);
         } catch (Exception e) {
             if (!silentExceptions) e.printStackTrace();
@@ -105,6 +107,8 @@ public class Config {
             jo.put("suppressUpdates", suppressUpdates);
             jo.put("retries", retries);
             jo.put("silentExceptions", silentExceptions);
+            jo.put("disableOptional", disableOptional);
+            jo.put("alwaysInstallOptional", alwaysInstallOptional);
             PrintWriter pw = new PrintWriter("cf.json");
             pw.write(jo.toJSONString());
 

@@ -222,12 +222,12 @@ public class Utils {
         boolean launcherMatch = false, versionMatch = false;
         int trueCount = 0;
         for (String s : LAUNCHERS)
-            if (versions.contains(s)) {
+            if (versions.stream().filter(str -> ((String) str).equalsIgnoreCase(s)).findAny().isPresent()) {
+                trueCount++;
                 if (s.equalsIgnoreCase(launcher)) {
                     launcherMatch = true;
                     break;
                 }
-                trueCount++;
             }
         // Assume it is ok if no launcher is specified by the mod file
         if (trueCount == 0) launcherMatch = true;
@@ -321,6 +321,11 @@ public class Utils {
         Scanner scanner = new Scanner(System.in);
         String res = scanner.nextLine();
         return res.equalsIgnoreCase("y");
+    }
+
+    public static String getModSlug(String id) {
+        JSONObject json = (JSONObject) readJsonFromUrl(Constants.CURSEFORGE_API + id);
+        return (String) json.get("slug");
     }
 
     @FunctionalInterface
