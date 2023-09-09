@@ -1,3 +1,5 @@
+## This project is dead. Consider using an alternative such as [Ferium](https://github.com/gorilla-devs/ferium) instead.
+
 # CurseForge CLI
 Written in Java. Designed for all platform and portable use.  
 Note that this is not a launcher. It is just a modpack manager. Game launching still requires Minecraft launcher.
